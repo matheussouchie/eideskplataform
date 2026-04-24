@@ -1,12 +1,16 @@
 import { createTicketAction } from "@/app/actions/tickets";
 import { KanbanColumn } from "@/components/kanban/kanban-column";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { ProductTreeSelect } from "@/components/tickets/product-tree-select";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import {
+  buildProductTree,
   getTicketsForDepartment,
   getTicketsForTeam,
   getTicketsForUser,
+  getDomainCategories,
+  getDomainProducts,
   getWorkspaceDepartmentsWithTeams,
   getWorkspaceMembers,
   getWorkspaceTicketStatuses,
@@ -27,12 +31,15 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
   const params = await searchParams;
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
-  const [allTickets, members, departmentsWithTeams, statuses] = await Promise.all([
+  const [allTickets, members, departmentsWithTeams, statuses, products, categories] = await Promise.all([
     getWorkspaceTicketsDetailed(activeMembership.workspace!.id),
     getWorkspaceMembers(activeMembership.workspace!.id),
     getWorkspaceDepartmentsWithTeams(activeMembership.workspace!.id),
     getWorkspaceTicketStatuses(activeMembership.workspace!.id),
+    getDomainProducts(activeMembership.workspace!.domain_id),
+    getDomainCategories(activeMembership.workspace!.domain_id),
   ]);
+  const productTree = buildProductTree(products);
 
   const currentMember = members.find((member) => member.user_id === user.id) ?? null;
   const currentTeamId = currentMember?.profile?.team_id ?? null;
@@ -67,6 +74,8 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
       ticket.status_info?.name,
       ticket.team?.name,
       ticket.department?.name,
+      ticket.product?.name,
+      ticket.category?.name,
     ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
@@ -232,6 +241,29 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                     </option>
                   )),
                 )}
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-slate-700">Produto</span>
+              <ProductTreeSelect
+                name="productId"
+                products={productTree}
+                defaultValue={productTree[0]?.id}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-slate-700">Categoria</span>
+              <select
+                name="categoryId"
+                defaultValue={categories[0]?.id}
+                className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
+                required
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="grid gap-2">

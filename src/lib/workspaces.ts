@@ -37,14 +37,28 @@ export type TicketCommentRow = Database["public"]["Tables"]["ticket_comments"]["
 export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
 export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
 export type TicketStatusRow = Database["public"]["Tables"]["ticket_statuses"]["Row"];
+export type ProductRow = Database["public"]["Tables"]["products"]["Row"];
+export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 
 export type DepartmentWithTeams = DepartmentRow & {
   teams: TeamRow[];
 };
 
 export type TicketStatusWithMeta = TicketStatusRow;
+export type ProductTreeNode = ProductRow & {
+  children: ProductTreeNode[];
+};
 
 export type TicketWithRelations = TicketRow & {
+  category: {
+    id: string;
+    name: string;
+  } | null;
+  product: {
+    id: string;
+    name: string;
+    parent_id: string | null;
+  } | null;
   status_info: {
     id: string;
     name: string;
@@ -220,6 +234,46 @@ export async function getWorkspaceTeams(workspaceId: string) {
   return (data ?? []) as TeamRow[];
 }
 
+export async function getDomainProducts(domainId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("domain_id", domainId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ProductRow[];
+}
+
+export async function getDomainCategories(domainId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("domain_id", domainId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as CategoryRow[];
+}
+
+export function buildProductTree(products: ProductRow[], parentId: string | null = null): ProductTreeNode[] {
+  return products
+    .filter((product: ProductRow) => product.parent_id === parentId)
+    .sort((a: ProductRow, b: ProductRow) => a.name.localeCompare(b.name))
+    .map((product: ProductRow) => ({
+      ...product,
+      children: buildProductTree(products, product.id),
+    }));
+}
+
 export async function getWorkspaceTicketStatuses(workspaceId: string) {
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
@@ -270,6 +324,11 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
     getWorkspaceTeams(workspaceId),
     getWorkspaceTicketStatuses(workspaceId),
   ]);
+
+  const domainId = departments[0]?.domain_id ?? teams[0]?.domain_id ?? tickets[0]?.domain_id;
+  const [products, categories] = domainId
+    ? await Promise.all([getDomainProducts(domainId), getDomainCategories(domainId)])
+    : [[], []];
 
   const relatedUserIds = Array.from(
     new Set(
@@ -341,8 +400,31 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
     ]),
   );
 
+  const productsMap = new Map(
+    products.map((product: ProductRow) => [
+      product.id,
+      {
+        id: product.id,
+        name: product.name,
+        parent_id: product.parent_id,
+      },
+    ]),
+  );
+
+  const categoriesMap = new Map(
+    categories.map((category: CategoryRow) => [
+      category.id,
+      {
+        id: category.id,
+        name: category.name,
+      },
+    ]),
+  );
+
   return tickets.map((ticket: TicketRow) => ({
     ...ticket,
+    category: categoriesMap.get(ticket.category_id) ?? null,
+    product: productsMap.get(ticket.product_id) ?? null,
     status_info: statusesMap.get(ticket.status_id) ?? null,
     department: departmentsMap.get(ticket.department_id) ?? null,
     team: teamsMap.get(ticket.team_id) ?? null,
@@ -441,4 +523,47 @@ export function getTicketsForDepartment(
   }
 
   return tickets.filter((ticket: TicketWithRelations) => ticket.department_id === departmentId);
+}
+
+export function buildDashboardWorkflowMetrics(
+  tickets: TicketWithRelations[],
+  members: WorkspaceMemberRow[],
+  statuses: TicketStatusRow[],
+) {
+  const byStatus = statuses.map((status: TicketStatusRow) => ({
+    id: status.id,
+    label: status.name,
+    total: tickets.filter((ticket: TicketWithRelations) => ticket.status_id === status.id).length,
+  }));
+
+  const byAgent = members
+    .filter((member: WorkspaceMemberRow) => member.role === "agent")
+    .map((member: WorkspaceMemberRow) => ({
+      id: member.user_id,
+      label: member.profile?.full_name ?? member.user_id,
+      total: tickets.filter((ticket: TicketWithRelations) => ticket.assigned_to === member.user_id).length,
+    }))
+    .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+
+  const byTeam = Array.from(
+    tickets.reduce((map, ticket) => {
+      const key = ticket.team?.id ?? "no-team";
+      const current = map.get(key) ?? {
+        id: key,
+        label: ticket.team?.name ?? "Sem time",
+        total: 0,
+      };
+      current.total += 1;
+      map.set(key, current);
+      return map;
+    }, new Map<string, { id: string; label: string; total: number }>()),
+  )
+    .map(([, value]) => value)
+    .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
+
+  return {
+    byStatus,
+    byAgent,
+    byTeam,
+  };
 }

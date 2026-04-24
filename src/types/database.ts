@@ -75,6 +75,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      products: {
+        Row: {
+          created_at: string;
+          domain_id: string;
+          id: string;
+          name: string;
+          parent_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          domain_id: string;
+          id?: string;
+          name: string;
+          parent_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          domain_id?: string;
+          id?: string;
+          name?: string;
+          parent_id?: string | null;
+        };
+        Relationships: [];
+      };
+      categories: {
+        Row: {
+          created_at: string;
+          domain_id: string;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          created_at?: string;
+          domain_id: string;
+          id?: string;
+          name: string;
+        };
+        Update: {
+          created_at?: string;
+          domain_id?: string;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       teams: {
         Row: {
           created_at: string;
@@ -190,12 +235,14 @@ export type Database = {
         Row: {
           assignee_id: string | null;
           assigned_to: string | null;
+          category_id: string;
           created_at: string;
           department_id: string;
           description: string;
           domain_id: string;
           id: string;
           priority: Database["public"]["Enums"]["ticket_priority"];
+          product_id: string;
           requester_id: string;
           status: Database["public"]["Enums"]["ticket_status"];
           status_id: string;
@@ -207,12 +254,14 @@ export type Database = {
         Insert: {
           assignee_id?: string | null;
           assigned_to?: string | null;
+          category_id: string;
           created_at?: string;
           department_id: string;
           description: string;
           domain_id: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
+          product_id: string;
           requester_id: string;
           status?: Database["public"]["Enums"]["ticket_status"];
           status_id?: string;
@@ -224,12 +273,14 @@ export type Database = {
         Update: {
           assignee_id?: string | null;
           assigned_to?: string | null;
+          category_id?: string;
           created_at?: string;
           department_id?: string;
           description?: string;
           domain_id?: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
+          product_id?: string;
           requester_id?: string;
           status?: Database["public"]["Enums"]["ticket_status"];
           status_id?: string;

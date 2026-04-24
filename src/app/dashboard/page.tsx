@@ -1,17 +1,20 @@
 import Link from "next/link";
 
+import { OpsMetricPanel } from "@/components/dashboard/ops-metric-panel";
 import { createWorkspaceAction } from "@/app/actions/workspaces";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import {
+  buildDashboardWorkflowMetrics,
   getTicketsForDepartment,
   getTicketsForTeam,
   getTicketsForUser,
   getWorkspaceDepartmentsWithTeams,
   getWorkspaceContext,
   getWorkspaceMembers,
+  getWorkspaceTicketStatuses,
   getWorkspaceTicketsDetailed,
 } from "@/lib/workspaces";
 
@@ -30,12 +33,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   let tickets = [] as Awaited<ReturnType<typeof getWorkspaceTicketsDetailed>>;
   let workspaceMembers = [] as Awaited<ReturnType<typeof getWorkspaceMembers>>;
   let departmentsWithTeams = [] as Awaited<ReturnType<typeof getWorkspaceDepartmentsWithTeams>>;
+  let statuses = [] as Awaited<ReturnType<typeof getWorkspaceTicketStatuses>>;
 
   if (workspaceId) {
-    [tickets, workspaceMembers, departmentsWithTeams] = await Promise.all([
+    [tickets, workspaceMembers, departmentsWithTeams, statuses] = await Promise.all([
       getWorkspaceTicketsDetailed(workspaceId),
       getWorkspaceMembers(workspaceId),
       getWorkspaceDepartmentsWithTeams(workspaceId),
+      getWorkspaceTicketStatuses(workspaceId),
     ]);
   }
 
@@ -114,6 +119,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const myBreakdown = buildBreakdown(myTickets);
   const teamBreakdown = buildBreakdown(teamTickets);
   const departmentBreakdown = buildBreakdown(departmentTickets);
+  const workflowMetrics = buildDashboardWorkflowMetrics(tickets, workspaceMembers, statuses);
   const firstName =
     (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.split(" ")[0]) ||
     "time";
@@ -266,6 +272,24 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
           </div>
         </Card>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-3">
+        <OpsMetricPanel
+          title="Tickets por status"
+          subtitle="Distribuicao operacional atual por etapa do fluxo."
+          rows={workflowMetrics.byStatus}
+        />
+        <OpsMetricPanel
+          title="Tickets por agente"
+          subtitle="Volume atribuido para cada agente do workspace."
+          rows={workflowMetrics.byAgent}
+        />
+        <OpsMetricPanel
+          title="Tickets por time"
+          subtitle="Carga atual de atendimento por time."
+          rows={workflowMetrics.byTeam}
+        />
       </section>
     </section>
   );

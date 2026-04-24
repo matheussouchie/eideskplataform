@@ -13,6 +13,12 @@ begin
   delete from public.tickets
   where workspace_id = workspace_uuid;
 
+  delete from public.categories
+  where domain_id = domain_uuid;
+
+  delete from public.products
+  where domain_id = domain_uuid;
+
   delete from public.workspace_memberships
   where workspace_id = workspace_uuid
      or user_id = any (
@@ -437,6 +443,26 @@ set
   domain_id = excluded.domain_id,
   name = excluded.name;
 
+insert into public.products (id, name, parent_id, domain_id, created_at) values
+('14000000-0000-0000-0000-000000000001', 'EiDesk Plataforma', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '14 days'),
+('14000000-0000-0000-0000-000000000002', 'Portal do Cliente', '14000000-0000-0000-0000-000000000001', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '13 days'),
+('14000000-0000-0000-0000-000000000003', 'Kanban Operacional', '14000000-0000-0000-0000-000000000001', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '13 days'),
+('14000000-0000-0000-0000-000000000004', 'Gestao de Usuarios', '14000000-0000-0000-0000-000000000001', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '12 days')
+on conflict (id) do update
+set
+  name = excluded.name,
+  parent_id = excluded.parent_id,
+  domain_id = excluded.domain_id;
+
+insert into public.categories (id, name, domain_id, created_at) values
+('15000000-0000-0000-0000-000000000001', 'Incidente', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '14 days'),
+('15000000-0000-0000-0000-000000000002', 'Solicitacao', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '13 days'),
+('15000000-0000-0000-0000-000000000003', 'Melhoria', '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '12 days')
+on conflict (id) do update
+set
+  name = excluded.name,
+  domain_id = excluded.domain_id;
+
 update public.profiles
 set team_id = (
   case id
@@ -464,6 +490,8 @@ insert into public.tickets (
   title,
   description,
   domain_id,
+  product_id,
+  category_id,
   department_id,
   team_id,
   status,
@@ -479,6 +507,8 @@ insert into public.tickets (
   'Nao consigo acessar o dashboard apos o login',
   'Ao entrar com email e senha o sistema volta para a tela inicial. O problema acontece no notebook do financeiro desde ontem.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000002',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000001',
   'open',
@@ -494,6 +524,8 @@ insert into public.tickets (
   'Erro ao anexar comprovante no ticket',
   'O upload falha sempre que tento enviar um PDF de mais de 3 MB para complementar a solicitacao.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000002',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000002',
   'in_progress',
@@ -509,6 +541,8 @@ insert into public.tickets (
   'Solicitacao de novo agente para o turno da noite',
   'Precisamos cadastrar mais um agente para cobrir atendimento entre 18h e 22h a partir da proxima semana.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000004',
+  '15000000-0000-0000-0000-000000000002',
   '11000000-0000-0000-0000-000000000002',
   '12000000-0000-0000-0000-000000000003',
   'resolved',
@@ -524,6 +558,8 @@ insert into public.tickets (
   'Fila de tickets aparece vazia no navegador Edge',
   'No Microsoft Edge a lista fica em branco, mas no Chrome funciona normalmente.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000003',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000001',
   'closed',
@@ -539,6 +575,8 @@ insert into public.tickets (
   'Troca de senha nao envia email',
   'Usuarios novos estao clicando em recuperar senha, mas o email nao chega na caixa de entrada.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000004',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000002',
   'open',
@@ -554,6 +592,8 @@ insert into public.tickets (
   'Campos do formulario cortando em tela pequena',
   'No celular Android os campos de descricao e prioridade ficam desalinhados e parte do botao some.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000003',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000002',
   '12000000-0000-0000-0000-000000000003',
   'in_progress',
@@ -569,6 +609,8 @@ insert into public.tickets (
   'Sugestao de adicionar filtro por prioridade',
   'Seria util filtrar a fila por prioridade para o time operacional responder incidentes urgentes primeiro.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000003',
+  '15000000-0000-0000-0000-000000000003',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000001',
   'open',
@@ -584,6 +626,8 @@ insert into public.tickets (
   'Duplicidade de notificacoes por email',
   'Ao responder um ticket, o cliente recebe duas notificacoes iguais em menos de um minuto.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000002',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000001',
   'resolved',
@@ -599,6 +643,8 @@ insert into public.tickets (
   'Permissao insuficiente para editar workspace',
   'Mesmo com perfil de administracao nao estou conseguindo alterar o nome do workspace nas configuracoes.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000004',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000001',
   '12000000-0000-0000-0000-000000000002',
   'closed',
@@ -614,6 +660,8 @@ insert into public.tickets (
   'Dashboard demora para abrir na primeira carga',
   'Depois do login, o dashboard leva cerca de 8 segundos para mostrar a fila e os indicadores.',
   '13000000-0000-0000-0000-000000000001',
+  '14000000-0000-0000-0000-000000000003',
+  '15000000-0000-0000-0000-000000000001',
   '11000000-0000-0000-0000-000000000002',
   '12000000-0000-0000-0000-000000000003',
   'in_progress',

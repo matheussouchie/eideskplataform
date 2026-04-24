@@ -69,11 +69,14 @@ export function TicketCard({
 
             <div className="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
               <p className="font-medium text-slate-900">{requesterName}</p>
-              <p className="truncate">Responsavel: {responsibleName}</p>
-              <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-                {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
-              </p>
-            </div>
+            <p className="truncate">Responsavel: {responsibleName}</p>
+            <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+              {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
+            </p>
+            <p className="mt-1 truncate text-xs text-slate-500">
+              {ticket.product?.name ?? "Produto"} / {ticket.category?.name ?? "Categoria"}
+            </p>
+          </div>
           </div>
         </Link>
 

@@ -26,6 +26,8 @@ export async function createTicketAction(formData: FormData) {
   const priority = readRequired(formData, "priority") as Database["public"]["Enums"]["ticket_priority"];
   const departmentId = readRequired(formData, "departmentId");
   const teamId = readRequired(formData, "teamId");
+  const productId = readRequired(formData, "productId");
+  const categoryId = readRequired(formData, "categoryId");
 
   const allowedPriorities: Database["public"]["Enums"]["ticket_priority"][] = [
     "low",
@@ -53,6 +55,28 @@ export async function createTicketAction(formData: FormData) {
     redirect("/dashboard/tickets?error=Time+nao+pertence+ao+departamento+selecionado");
   }
 
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("id, domain_id")
+    .eq("id", productId)
+    .eq("domain_id", team.domain_id)
+    .maybeSingle();
+
+  if (productError || !product) {
+    redirect("/dashboard/tickets?error=Produto+invalido");
+  }
+
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("id, domain_id")
+    .eq("id", categoryId)
+    .eq("domain_id", team.domain_id)
+    .maybeSingle();
+
+  if (categoryError || !category) {
+    redirect("/dashboard/tickets?error=Categoria+invalida");
+  }
+
   const { data: initialStatus, error: initialStatusError } = await supabase
     .from("ticket_statuses")
     .select("id")
@@ -73,6 +97,8 @@ export async function createTicketAction(formData: FormData) {
       status_id: initialStatus.id,
       department_id: departmentId,
       team_id: teamId,
+      product_id: productId,
+      category_id: categoryId,
       requester_id: user.id,
       title,
       description,

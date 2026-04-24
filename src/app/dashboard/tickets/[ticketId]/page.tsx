@@ -154,6 +154,18 @@ export default async function TicketDetailsPage({
               </dd>
             </div>
             <div>
+              <dt className="text-slate-500">Produto</dt>
+              <dd className="mt-1 font-semibold text-slate-900">
+                {ticket.product?.name ?? "Nao definido"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Categoria</dt>
+              <dd className="mt-1 font-semibold text-slate-900">
+                {ticket.category?.name ?? "Nao definida"}
+              </dd>
+            </div>
+            <div>
               <dt className="text-slate-500">Time</dt>
               <dd className="mt-1 font-semibold text-slate-900">
                 {ticket.team?.name ?? "Nao definido"}
