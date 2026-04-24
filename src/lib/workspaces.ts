@@ -52,6 +52,12 @@ export type TicketCommentWithAuthor = Database["public"]["Tables"]["ticket_comme
   } | null;
 };
 
+type ProfileLookupRow = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 export async function getUserMemberships() {
   const user = await requireUser();
   const supabase = await getSupabaseServerClient();
@@ -184,7 +190,7 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
     }
 
     profilesMap = new Map(
-      (profiles ?? []).map((profile) => [
+      ((profiles ?? []) as ProfileLookupRow[]).map((profile: ProfileLookupRow) => [
         profile.id,
         {
           id: profile.id,
@@ -238,7 +244,7 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
     }
 
     profilesMap = new Map(
-      (profiles ?? []).map((profile) => [
+      ((profiles ?? []) as ProfileLookupRow[]).map((profile: ProfileLookupRow) => [
         profile.id,
         {
           id: profile.id,
