@@ -50,7 +50,7 @@ export function TicketCard({
   ticket: TicketWithRelations;
   columnStatus: "novo" | "em-atendimento" | "aguardando-cliente" | "resolvido";
 }) {
-  const requesterName = ticket.requester?.full_name ?? "Cliente não identificado";
+  const requesterName = ticket.requester?.full_name ?? "Cliente nao identificado";
 
   return (
     <Link href={`/dashboard/tickets/${ticket.id}`} className="block">
@@ -72,7 +72,10 @@ export function TicketCard({
 
           <div className="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
             <p className="font-medium text-slate-900">{requesterName}</p>
-            <p className="truncate">{ticket.assignee?.full_name ?? "Sem agente responsável"}</p>
+            <p className="truncate">{ticket.assignee?.full_name ?? "Sem agente responsavel"}</p>
+            <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+              {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -83,7 +86,7 @@ export function TicketCard({
                 : ticket.priority === "high"
                   ? "Alta"
                   : ticket.priority === "medium"
-                    ? "Média"
+                    ? "Media"
                     : "Baixa"}
             </Badge>
           </div>

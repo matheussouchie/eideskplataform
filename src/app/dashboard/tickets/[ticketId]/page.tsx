@@ -5,11 +5,7 @@ import { updateTicketStatusAction } from "@/app/actions/tickets";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-  getTicketById,
-  getTicketComments,
-  requireActiveWorkspace,
-} from "@/lib/workspaces";
+import { getTicketById, getTicketComments, requireActiveWorkspace } from "@/lib/workspaces";
 
 function priorityVariant(priority: "low" | "medium" | "high" | "urgent") {
   switch (priority) {
@@ -44,7 +40,7 @@ export default async function TicketDetailsPage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <Link href="/dashboard/tickets" className="text-sm font-semibold text-sky-700">
-            ← Voltar para o kanban
+            Voltar para o kanban
           </Link>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
@@ -62,7 +58,7 @@ export default async function TicketDetailsPage({
                 : ticket.priority === "high"
                   ? "Alta"
                   : ticket.priority === "medium"
-                    ? "Média"
+                    ? "Media"
                     : "Baixa"}
             </Badge>
             <Badge
@@ -121,13 +117,25 @@ export default async function TicketDetailsPage({
             <div>
               <dt className="text-slate-500">Cliente</dt>
               <dd className="mt-1 font-semibold text-slate-900">
-                {ticket.requester?.full_name ?? "Cliente não encontrado"}
+                {ticket.requester?.full_name ?? "Cliente nao encontrado"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Responsável</dt>
+              <dt className="text-slate-500">Responsavel</dt>
               <dd className="mt-1 font-semibold text-slate-900">
-                {ticket.assignee?.full_name ?? "Sem responsável"}
+                {ticket.assignee?.full_name ?? "Sem responsavel"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Departamento</dt>
+              <dd className="mt-1 font-semibold text-slate-900">
+                {ticket.department?.name ?? "Nao definido"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Time</dt>
+              <dd className="mt-1 font-semibold text-slate-900">
+                {ticket.team?.name ?? "Nao definido"}
               </dd>
             </div>
             <div>
@@ -137,7 +145,7 @@ export default async function TicketDetailsPage({
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Última atualização</dt>
+              <dt className="text-slate-500">Ultima atualizacao</dt>
               <dd className="mt-1 font-semibold text-slate-900">
                 {new Date(ticket.updated_at).toLocaleString("pt-BR")}
               </dd>
@@ -148,7 +156,7 @@ export default async function TicketDetailsPage({
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Histórico público</h2>
+              <h2 className="text-base font-semibold text-slate-900">Historico publico</h2>
               <p className="mt-1 text-sm text-slate-500">Mensagens reais associadas a este ticket.</p>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
@@ -163,13 +171,13 @@ export default async function TicketDetailsPage({
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">
-                        {comment.author?.full_name ?? "Usuário"}
+                        {comment.author?.full_name ?? "Usuario"}
                       </p>
                       <p className="text-xs text-slate-500">
                         {new Date(comment.created_at).toLocaleString("pt-BR")}
                       </p>
                     </div>
-                    <Badge variant="neutral">Público</Badge>
+                    <Badge variant="neutral">Publico</Badge>
                   </div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                     {comment.body}
@@ -178,7 +186,7 @@ export default async function TicketDetailsPage({
               ))
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
-                Ainda não há mensagens públicas neste ticket.
+                Ainda nao ha mensagens publicas neste ticket.
               </div>
             )}
           </div>

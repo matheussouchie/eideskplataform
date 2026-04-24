@@ -4,6 +4,10 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import {
+  getTicketsForDepartment,
+  getTicketsForTeam,
+  getTicketsForUser,
+  getWorkspaceDepartmentsWithTeams,
   getWorkspaceMembers,
   getWorkspaceTicketsDetailed,
   requireActiveWorkspace,
@@ -22,34 +26,45 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
   const params = await searchParams;
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
-  const allTickets = await getWorkspaceTicketsDetailed(activeMembership.workspace!.id);
-  const members = await getWorkspaceMembers(activeMembership.workspace!.id);
+  const [allTickets, members, departmentsWithTeams] = await Promise.all([
+    getWorkspaceTicketsDetailed(activeMembership.workspace!.id),
+    getWorkspaceMembers(activeMembership.workspace!.id),
+    getWorkspaceDepartmentsWithTeams(activeMembership.workspace!.id),
+  ]);
 
-  const teamIds = members
-    .filter((member) => ["owner", "admin", "agent"].includes(member.role))
-    .map((member) => member.user_id);
+  const currentMember = members.find((member) => member.user_id === user.id) ?? null;
+  const currentTeamId = currentMember?.profile?.team_id ?? null;
+  const currentDepartmentId =
+    departmentsWithTeams.find((department) =>
+      department.teams.some((team) => team.id === currentTeamId),
+    )?.id ?? null;
 
   const query = params.query?.trim().toLowerCase() ?? "";
   const scope = params.scope ?? "department";
 
-  const scopedTickets = allTickets.filter((ticket) => {
-    if (scope === "mine") {
-      return ticket.assignee_id === user.id || ticket.requester_id === user.id;
-    }
-
-    if (scope === "team") {
-      return (ticket.assignee_id ? teamIds.includes(ticket.assignee_id) : false) || !ticket.assignee_id;
-    }
-
-    return true;
-  });
+  const scopedTickets =
+    scope === "mine"
+      ? getTicketsForUser(allTickets, user.id)
+      : scope === "team"
+        ? getTicketsForTeam(allTickets, currentTeamId)
+        : currentDepartmentId
+          ? getTicketsForDepartment(allTickets, currentDepartmentId)
+          : allTickets;
 
   const tickets = scopedTickets.filter((ticket) => {
     if (!query) {
       return true;
     }
 
-    return [ticket.title, ticket.description, ticket.requester?.full_name, ticket.assignee?.full_name, ticket.priority]
+    return [
+      ticket.title,
+      ticket.description,
+      ticket.requester?.full_name,
+      ticket.assignee?.full_name,
+      ticket.priority,
+      ticket.team?.name,
+      ticket.department?.name,
+    ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -131,6 +146,19 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
               <p className="mt-2 text-2xl font-semibold text-slate-900">{columns.resolvido.length}</p>
             </div>
           </div>
+
+          <div className="mt-5 flex flex-wrap gap-3 text-xs font-medium text-slate-500">
+            <span className="rounded-full bg-slate-100 px-3 py-1">
+              Meu time: {currentMember?.profile?.team_id
+                ? departmentsWithTeams.flatMap((department) => department.teams).find((team) => team.id === currentMember.profile?.team_id)?.name ?? "Nao definido"
+                : "Nao definido"}
+            </span>
+            <span className="rounded-full bg-slate-100 px-3 py-1">
+              Meu departamento: {currentDepartmentId
+                ? departmentsWithTeams.find((department) => department.id === currentDepartmentId)?.name ?? "Nao definido"
+                : "Nao definido"}
+            </span>
+          </div>
         </Card>
 
         <Card className="p-5">
@@ -160,6 +188,38 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
                 required
               />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-slate-700">Departamento</span>
+              <select
+                name="departmentId"
+                defaultValue={departmentsWithTeams[0]?.id}
+                className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
+                required
+              >
+                {departmentsWithTeams.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-slate-700">Time</span>
+              <select
+                name="teamId"
+                defaultValue={departmentsWithTeams[0]?.teams[0]?.id}
+                className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
+                required
+              >
+                {departmentsWithTeams.flatMap((department) =>
+                  department.teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {department.name} - {team.name}
+                    </option>
+                  )),
+                )}
+              </select>
             </label>
             <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700">Prioridade</span>

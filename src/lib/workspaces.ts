@@ -24,32 +24,52 @@ export type WorkspaceMemberRow = {
   role: Database["public"]["Enums"]["workspace_role"];
   user_id: string;
   profile: {
+    id: string;
     full_name: string | null;
     avatar_url: string | null;
+    team_id: string | null;
   } | null;
 };
 
 export type TicketRow = Database["public"]["Tables"]["tickets"]["Row"];
 export type TicketCommentRow = Database["public"]["Tables"]["ticket_comments"]["Row"];
+export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
+export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
+
+export type DepartmentWithTeams = DepartmentRow & {
+  teams: TeamRow[];
+};
 
 export type TicketWithRelations = TicketRow & {
+  department: {
+    id: string;
+    name: string;
+  } | null;
+  team: {
+    id: string;
+    name: string;
+    department_id: string;
+  } | null;
   requester: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    team_id: string | null;
   } | null;
   assignee: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    team_id: string | null;
   } | null;
 };
 
-export type TicketCommentWithAuthor = Database["public"]["Tables"]["ticket_comments"]["Row"] & {
+export type TicketCommentWithAuthor = TicketCommentRow & {
   author: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    team_id: string | null;
   } | null;
 };
 
@@ -57,6 +77,13 @@ type ProfileLookupRow = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  team_id: string | null;
+};
+
+type MembershipLookupRow = {
+  created_at: string;
+  role: Database["public"]["Enums"]["workspace_role"];
+  user_id: string;
 };
 
 export async function getUserMemberships() {
@@ -120,15 +147,16 @@ export async function getWorkspaceMembers(workspaceId: string) {
     throw new Error(error.message);
   }
 
-  const userIds = (memberships ?? []).map((membership: { user_id: string }) => membership.user_id);
+  const membershipRows = (memberships ?? []) as MembershipLookupRow[];
+  const userIds = membershipRows.map((membership: MembershipLookupRow) => membership.user_id);
 
   if (!userIds.length) {
-    return [];
+    return [] as WorkspaceMemberRow[];
   }
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url")
+    .select("id, full_name, avatar_url, team_id")
     .in("id", userIds);
 
   if (profilesError) {
@@ -136,19 +164,63 @@ export async function getWorkspaceMembers(workspaceId: string) {
   }
 
   const profilesMap = new Map(
-    (profiles ?? []).map((profile: { id: string; full_name: string | null; avatar_url: string | null }) => [
+    ((profiles ?? []) as ProfileLookupRow[]).map((profile: ProfileLookupRow) => [
       profile.id,
       {
+        id: profile.id,
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
+        team_id: profile.team_id,
       },
     ]),
   );
 
-  return (memberships ?? []).map((membership: { created_at: string; role: Database["public"]["Enums"]["workspace_role"]; user_id: string }) => ({
+  return membershipRows.map((membership: MembershipLookupRow) => ({
     ...membership,
     profile: profilesMap.get(membership.user_id) ?? null,
   })) as WorkspaceMemberRow[];
+}
+
+export async function getWorkspaceDepartments(workspaceId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("departments")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DepartmentRow[];
+}
+
+export async function getWorkspaceTeams(workspaceId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("teams")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as TeamRow[];
+}
+
+export async function getWorkspaceDepartmentsWithTeams(workspaceId: string) {
+  const [departments, teams] = await Promise.all([
+    getWorkspaceDepartments(workspaceId),
+    getWorkspaceTeams(workspaceId),
+  ]);
+
+  return departments.map((department: DepartmentRow) => ({
+    ...department,
+    teams: teams.filter((team: TeamRow) => team.department_id === department.id),
+  })) as DepartmentWithTeams[];
 }
 
 export async function getWorkspaceTickets(workspaceId: string) {
@@ -168,22 +240,29 @@ export async function getWorkspaceTickets(workspaceId: string) {
 
 export async function getWorkspaceTicketsDetailed(workspaceId: string) {
   const supabase = await getSupabaseServerClient();
-  const tickets = await getWorkspaceTickets(workspaceId);
+  const [tickets, departments, teams] = await Promise.all([
+    getWorkspaceTickets(workspaceId),
+    getWorkspaceDepartments(workspaceId),
+    getWorkspaceTeams(workspaceId),
+  ]);
 
   const relatedUserIds = Array.from(
     new Set(
       tickets
-        .flatMap((ticket) => [ticket.requester_id, ticket.assignee_id].filter(Boolean))
+        .flatMap((ticket: TicketRow) => [ticket.requester_id, ticket.assignee_id].filter(Boolean))
         .filter((userId): userId is string => Boolean(userId)),
     ),
   );
 
-  let profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
+  let profilesMap = new Map<
+    string,
+    { id: string; full_name: string | null; avatar_url: string | null; team_id: string | null }
+  >();
 
   if (relatedUserIds.length) {
     const { data: profiles, error } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url")
+      .select("id, full_name, avatar_url, team_id")
       .in("id", relatedUserIds);
 
     if (error) {
@@ -197,13 +276,37 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
           id: profile.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+          team_id: profile.team_id,
         },
       ]),
     );
   }
 
-  return tickets.map((ticket) => ({
+  const departmentsMap = new Map(
+    departments.map((department: DepartmentRow) => [
+      department.id,
+      {
+        id: department.id,
+        name: department.name,
+      },
+    ]),
+  );
+
+  const teamsMap = new Map(
+    teams.map((team: TeamRow) => [
+      team.id,
+      {
+        id: team.id,
+        name: team.name,
+        department_id: team.department_id,
+      },
+    ]),
+  );
+
+  return tickets.map((ticket: TicketRow) => ({
     ...ticket,
+    department: departmentsMap.get(ticket.department_id) ?? null,
+    team: teamsMap.get(ticket.team_id) ?? null,
     requester: profilesMap.get(ticket.requester_id) ?? null,
     assignee: ticket.assignee_id ? profilesMap.get(ticket.assignee_id) ?? null : null,
   })) as TicketWithRelations[];
@@ -211,7 +314,7 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
 
 export async function getTicketById(workspaceId: string, ticketId: string) {
   const tickets = await getWorkspaceTicketsDetailed(workspaceId);
-  return tickets.find((ticket) => ticket.id === ticketId) ?? null;
+  return tickets.find((ticket: TicketWithRelations) => ticket.id === ticketId) ?? null;
 }
 
 export async function getTicketComments(ticketId: string, workspaceId: string) {
@@ -228,20 +331,24 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
     throw new Error(error.message);
   }
 
+  const commentRows = (comments ?? []) as TicketCommentRow[];
   const authorIds = Array.from(
     new Set(
-      ((comments ?? []) as TicketCommentRow[])
+      commentRows
         .map((comment: TicketCommentRow) => comment.author_id)
         .filter((id): id is string => Boolean(id)),
     ),
   );
 
-  let profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
+  let profilesMap = new Map<
+    string,
+    { id: string; full_name: string | null; avatar_url: string | null; team_id: string | null }
+  >();
 
   if (authorIds.length) {
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url")
+      .select("id, full_name, avatar_url, team_id")
       .in("id", authorIds);
 
     if (profilesError) {
@@ -255,13 +362,39 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
           id: profile.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+          team_id: profile.team_id,
         },
       ]),
     );
   }
 
-  return ((comments ?? []) as TicketCommentRow[]).map((comment: TicketCommentRow) => ({
+  return commentRows.map((comment: TicketCommentRow) => ({
     ...comment,
     author: profilesMap.get(comment.author_id) ?? null,
   })) as TicketCommentWithAuthor[];
+}
+
+export function getTicketsForUser(tickets: TicketWithRelations[], userId: string) {
+  return tickets.filter(
+    (ticket: TicketWithRelations) => ticket.assignee_id === userId || ticket.requester_id === userId,
+  );
+}
+
+export function getTicketsForTeam(tickets: TicketWithRelations[], teamId: string | null | undefined) {
+  if (!teamId) {
+    return [] as TicketWithRelations[];
+  }
+
+  return tickets.filter((ticket: TicketWithRelations) => ticket.team_id === teamId);
+}
+
+export function getTicketsForDepartment(
+  tickets: TicketWithRelations[],
+  departmentId: string | null | undefined,
+) {
+  if (!departmentId) {
+    return [] as TicketWithRelations[];
+  }
+
+  return tickets.filter((ticket: TicketWithRelations) => ticket.department_id === departmentId);
 }

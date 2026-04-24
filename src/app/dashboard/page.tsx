@@ -6,6 +6,10 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import {
+  getTicketsForDepartment,
+  getTicketsForTeam,
+  getTicketsForUser,
+  getWorkspaceDepartmentsWithTeams,
   getWorkspaceContext,
   getWorkspaceMembers,
   getWorkspaceTicketsDetailed,
@@ -22,9 +26,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const params = await searchParams;
   const user = await requireUser();
   const { activeMembership } = await getWorkspaceContext();
-  const tickets = activeMembership?.workspace
-    ? await getWorkspaceTicketsDetailed(activeMembership.workspace.id)
-    : [];
+  const workspaceId = activeMembership?.workspace?.id;
+  let tickets = [] as Awaited<ReturnType<typeof getWorkspaceTicketsDetailed>>;
+  let workspaceMembers = [] as Awaited<ReturnType<typeof getWorkspaceMembers>>;
+  let departmentsWithTeams = [] as Awaited<ReturnType<typeof getWorkspaceDepartmentsWithTeams>>;
+
+  if (workspaceId) {
+    [tickets, workspaceMembers, departmentsWithTeams] = await Promise.all([
+      getWorkspaceTicketsDetailed(workspaceId),
+      getWorkspaceMembers(workspaceId),
+      getWorkspaceDepartmentsWithTeams(workspaceId),
+    ]);
+  }
 
   if (!activeMembership?.workspace) {
     return (
@@ -75,18 +88,21 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     );
   }
 
-  const workspaceMembers = await getWorkspaceMembers(activeMembership.workspace.id);
-  const teamUserIds = workspaceMembers
-    .filter((member) => ["owner", "admin", "agent"].includes(member.role))
-    .map((member) => member.user_id);
+  const currentMember = workspaceMembers.find((member) => member.user_id === user.id) ?? null;
+  const currentTeamId = currentMember?.profile?.team_id ?? null;
+  const currentDepartmentId =
+    departmentsWithTeams.find((department) =>
+      department.teams.some((team) => team.id === currentTeamId),
+    )?.id ?? null;
 
-  const myTickets = tickets.filter(
-    (ticket) => ticket.assignee_id === user.id || ticket.requester_id === user.id,
-  );
-  const teamTickets = tickets.filter(
-    (ticket) => (ticket.assignee_id ? teamUserIds.includes(ticket.assignee_id) : false) || !ticket.assignee_id,
-  );
-  const departmentTickets = tickets;
+  const myTickets = getTicketsForUser(tickets, user.id);
+  const teamTickets = getTicketsForTeam(tickets, currentTeamId);
+  const departmentTickets = currentDepartmentId
+    ? getTicketsForDepartment(tickets, currentDepartmentId)
+    : tickets;
+  const activeTeamMembers = currentTeamId
+    ? workspaceMembers.filter((member) => member.profile?.team_id === currentTeamId)
+    : [];
 
   const buildBreakdown = (sourceTickets: typeof tickets) => ({
     open: sourceTickets.filter((ticket) => ticket.status === "open" && !ticket.assignee_id).length,
@@ -230,9 +246,22 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Equipe ativa</p>
-              <p className="mt-2 text-base font-semibold text-slate-900">{teamUserIds.length} pessoas</p>
+              <p className="mt-2 text-base font-semibold text-slate-900">{activeTeamMembers.length} pessoas</p>
               <p className="mt-1 text-sm text-slate-500">
                 {workspaceMembers.filter((member) => member.role === "requester").length} clientes com acesso
+              </p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Estrutura atual</p>
+              <p className="mt-2 text-base font-semibold text-slate-900">
+                {currentMember?.profile?.team_id
+                  ? departmentsWithTeams.flatMap((department) => department.teams).find((team) => team.id === currentMember.profile?.team_id)?.name ?? "Time nao definido"
+                  : "Time nao definido"}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {currentDepartmentId
+                  ? departmentsWithTeams.find((department) => department.id === currentDepartmentId)?.name ?? "Departamento nao definido"
+                  : "Departamento nao definido"}
               </p>
             </div>
           </div>

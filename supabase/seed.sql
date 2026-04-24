@@ -406,6 +406,43 @@ insert into public.workspace_memberships (workspace_id, user_id, role, created_a
 ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000005', 'requester', timezone('utc', now()) - interval '12 days'),
 ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'requester', timezone('utc', now()) - interval '12 days');
 
+insert into public.departments (id, workspace_id, name, created_at) values
+('11000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'Suporte', timezone('utc', now()) - interval '14 days'),
+('11000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'Produto', timezone('utc', now()) - interval '13 days')
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  name = excluded.name;
+
+insert into public.teams (id, workspace_id, department_id, name, created_at) values
+('12000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001', 'Atendimento Plataforma', timezone('utc', now()) - interval '14 days'),
+('12000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001', 'Customer Success', timezone('utc', now()) - interval '13 days'),
+('12000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000002', 'Operacoes de Produto', timezone('utc', now()) - interval '12 days')
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  department_id = excluded.department_id,
+  name = excluded.name;
+
+update public.profiles
+set team_id = (
+  case id
+  when '00000000-0000-0000-0000-000000000001' then '12000000-0000-0000-0000-000000000001'
+  when '00000000-0000-0000-0000-000000000002' then '12000000-0000-0000-0000-000000000001'
+  when '00000000-0000-0000-0000-000000000003' then '12000000-0000-0000-0000-000000000002'
+  when '00000000-0000-0000-0000-000000000004' then '12000000-0000-0000-0000-000000000003'
+  else null
+  end
+)::uuid
+where id in (
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000004',
+  '00000000-0000-0000-0000-000000000005',
+  '00000000-0000-0000-0000-000000000006'
+);
+
 insert into public.tickets (
   id,
   workspace_id,
@@ -413,6 +450,8 @@ insert into public.tickets (
   assignee_id,
   title,
   description,
+  department_id,
+  team_id,
   status,
   priority,
   created_at,
@@ -425,6 +464,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000002',
   'Nao consigo acessar o dashboard apos o login',
   'Ao entrar com email e senha o sistema volta para a tela inicial. O problema acontece no notebook do financeiro desde ontem.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000001',
   'open',
   'high',
   timezone('utc', now()) - interval '10 days',
@@ -437,6 +478,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000003',
   'Erro ao anexar comprovante no ticket',
   'O upload falha sempre que tento enviar um PDF de mais de 3 MB para complementar a solicitacao.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000002',
   'in_progress',
   'medium',
   timezone('utc', now()) - interval '9 days',
@@ -449,6 +492,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000004',
   'Solicitacao de novo agente para o turno da noite',
   'Precisamos cadastrar mais um agente para cobrir atendimento entre 18h e 22h a partir da proxima semana.',
+  '11000000-0000-0000-0000-000000000002',
+  '12000000-0000-0000-0000-000000000003',
   'resolved',
   'medium',
   timezone('utc', now()) - interval '8 days',
@@ -461,6 +506,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000002',
   'Fila de tickets aparece vazia no navegador Edge',
   'No Microsoft Edge a lista fica em branco, mas no Chrome funciona normalmente.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000001',
   'closed',
   'low',
   timezone('utc', now()) - interval '8 days',
@@ -473,6 +520,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000003',
   'Troca de senha nao envia email',
   'Usuarios novos estao clicando em recuperar senha, mas o email nao chega na caixa de entrada.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000002',
   'open',
   'urgent',
   timezone('utc', now()) - interval '7 days',
@@ -485,6 +534,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000004',
   'Campos do formulario cortando em tela pequena',
   'No celular Android os campos de descricao e prioridade ficam desalinhados e parte do botao some.',
+  '11000000-0000-0000-0000-000000000002',
+  '12000000-0000-0000-0000-000000000003',
   'in_progress',
   'medium',
   timezone('utc', now()) - interval '6 days',
@@ -497,6 +548,8 @@ insert into public.tickets (
   null,
   'Sugestao de adicionar filtro por prioridade',
   'Seria util filtrar a fila por prioridade para o time operacional responder incidentes urgentes primeiro.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000001',
   'open',
   'low',
   timezone('utc', now()) - interval '5 days',
@@ -509,6 +562,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000002',
   'Duplicidade de notificacoes por email',
   'Ao responder um ticket, o cliente recebe duas notificacoes iguais em menos de um minuto.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000001',
   'resolved',
   'high',
   timezone('utc', now()) - interval '4 days',
@@ -521,6 +576,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000003',
   'Permissao insuficiente para editar workspace',
   'Mesmo com perfil de administracao nao estou conseguindo alterar o nome do workspace nas configuracoes.',
+  '11000000-0000-0000-0000-000000000001',
+  '12000000-0000-0000-0000-000000000002',
   'closed',
   'high',
   timezone('utc', now()) - interval '3 days',
@@ -533,6 +590,8 @@ insert into public.tickets (
   '00000000-0000-0000-0000-000000000004',
   'Dashboard demora para abrir na primeira carga',
   'Depois do login, o dashboard leva cerca de 8 segundos para mostrar a fila e os indicadores.',
+  '11000000-0000-0000-0000-000000000002',
+  '12000000-0000-0000-0000-000000000003',
   'in_progress',
   'medium',
   timezone('utc', now()) - interval '2 days',
@@ -568,5 +627,39 @@ insert into public.ticket_comments (
 ('30000000-0000-0000-0000-000000000018', '20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', 'Corrigimos o mapeamento de permissoes e o workspace voltou a aceitar edicao por administradores.', false, timezone('utc', now()) - interval '10 hours'),
 ('30000000-0000-0000-0000-000000000019', '20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000006', 'A lentidao acontece principalmente no primeiro acesso do dia, antes de a equipe comecar a usar.', false, timezone('utc', now()) - interval '2 days' + interval '20 minutes'),
 ('30000000-0000-0000-0000-000000000020', '20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000004', 'Estamos medindo a consulta inicial e avaliando reduzir o tempo da primeira renderizacao do dashboard.', false, timezone('utc', now()) - interval '2 hours');
+
+update public.tickets
+set
+  department_id = (
+    case id
+    when '20000000-0000-0000-0000-000000000001' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000002' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000003' then '11000000-0000-0000-0000-000000000002'
+    when '20000000-0000-0000-0000-000000000004' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000005' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000006' then '11000000-0000-0000-0000-000000000002'
+    when '20000000-0000-0000-0000-000000000007' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000008' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000009' then '11000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000010' then '11000000-0000-0000-0000-000000000002'
+    else department_id
+    end
+  )::uuid,
+  team_id = (
+    case id
+    when '20000000-0000-0000-0000-000000000001' then '12000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000002' then '12000000-0000-0000-0000-000000000002'
+    when '20000000-0000-0000-0000-000000000003' then '12000000-0000-0000-0000-000000000003'
+    when '20000000-0000-0000-0000-000000000004' then '12000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000005' then '12000000-0000-0000-0000-000000000002'
+    when '20000000-0000-0000-0000-000000000006' then '12000000-0000-0000-0000-000000000003'
+    when '20000000-0000-0000-0000-000000000007' then '12000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000008' then '12000000-0000-0000-0000-000000000001'
+    when '20000000-0000-0000-0000-000000000009' then '12000000-0000-0000-0000-000000000002'
+    when '20000000-0000-0000-0000-000000000010' then '12000000-0000-0000-0000-000000000003'
+    else team_id
+    end
+  )::uuid
+where workspace_id = '10000000-0000-0000-0000-000000000001';
 
 commit;

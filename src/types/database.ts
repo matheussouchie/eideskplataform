@@ -3,12 +3,34 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      departments: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          workspace_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          workspace_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
           created_at: string;
           full_name: string | null;
           id: string;
+          team_id: string | null;
           updated_at: string;
         };
         Insert: {
@@ -16,6 +38,7 @@ export type Database = {
           created_at?: string;
           full_name?: string | null;
           id: string;
+          team_id?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -23,7 +46,32 @@ export type Database = {
           created_at?: string;
           full_name?: string | null;
           id?: string;
+          team_id?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      teams: {
+        Row: {
+          created_at: string;
+          department_id: string;
+          id: string;
+          name: string;
+          workspace_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          department_id: string;
+          id?: string;
+          name: string;
+          workspace_id: string;
+        };
+        Update: {
+          created_at?: string;
+          department_id?: string;
+          id?: string;
+          name?: string;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -82,11 +130,13 @@ export type Database = {
         Row: {
           assignee_id: string | null;
           created_at: string;
+          department_id: string;
           description: string;
           id: string;
           priority: Database["public"]["Enums"]["ticket_priority"];
           requester_id: string;
           status: Database["public"]["Enums"]["ticket_status"];
+          team_id: string;
           title: string;
           updated_at: string;
           workspace_id: string;
@@ -94,11 +144,13 @@ export type Database = {
         Insert: {
           assignee_id?: string | null;
           created_at?: string;
+          department_id: string;
           description: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
           requester_id: string;
           status?: Database["public"]["Enums"]["ticket_status"];
+          team_id: string;
           title: string;
           updated_at?: string;
           workspace_id: string;
@@ -106,11 +158,13 @@ export type Database = {
         Update: {
           assignee_id?: string | null;
           created_at?: string;
+          department_id?: string;
           description?: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
           requester_id?: string;
           status?: Database["public"]["Enums"]["ticket_status"];
+          team_id?: string;
           title?: string;
           updated_at?: string;
           workspace_id?: string;

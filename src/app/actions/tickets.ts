@@ -24,6 +24,8 @@ export async function createTicketAction(formData: FormData) {
   const title = readRequired(formData, "title");
   const description = readRequired(formData, "description");
   const priority = readRequired(formData, "priority") as Database["public"]["Enums"]["ticket_priority"];
+  const departmentId = readRequired(formData, "departmentId");
+  const teamId = readRequired(formData, "teamId");
 
   const allowedPriorities: Database["public"]["Enums"]["ticket_priority"][] = [
     "low",
@@ -36,10 +38,27 @@ export async function createTicketAction(formData: FormData) {
     redirect("/dashboard/tickets?error=Prioridade+invalida");
   }
 
+  const { data: team, error: teamError } = await supabase
+    .from("teams")
+    .select("id, department_id")
+    .eq("id", teamId)
+    .eq("workspace_id", activeMembership.workspace!.id)
+    .maybeSingle();
+
+  if (teamError || !team) {
+    redirect("/dashboard/tickets?error=Time+invalido");
+  }
+
+  if (team.department_id !== departmentId) {
+    redirect("/dashboard/tickets?error=Time+nao+pertence+ao+departamento+selecionado");
+  }
+
   const { data: ticket, error } = await supabase
     .from("tickets")
     .insert({
       workspace_id: activeMembership.workspace!.id,
+      department_id: departmentId,
+      team_id: teamId,
       requester_id: user.id,
       title,
       description,
