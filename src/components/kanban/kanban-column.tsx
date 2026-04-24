@@ -5,7 +5,7 @@ type KanbanColumnProps = {
   title: string;
   tone: "blue" | "amber" | "violet" | "emerald";
   tickets: TicketWithRelations[];
-  columnStatus: "novo" | "em-atendimento" | "aguardando-cliente" | "resolvido";
+  canAssume: boolean;
 };
 
 const toneMap = {
@@ -15,12 +15,7 @@ const toneMap = {
   emerald: "from-emerald-500 to-teal-600",
 };
 
-export function KanbanColumn({
-  title,
-  tone,
-  tickets,
-  columnStatus,
-}: KanbanColumnProps) {
+export function KanbanColumn({ title, tone, tickets, canAssume }: KanbanColumnProps) {
   return (
     <section className="flex w-[320px] shrink-0 flex-col rounded-[28px] border border-slate-200 bg-slate-50/80 p-3">
       <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm">
@@ -36,7 +31,7 @@ export function KanbanColumn({
       <div className="flex max-h-[calc(100vh-16rem)] flex-col gap-3 overflow-y-auto pr-1">
         {tickets.length ? (
           tickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} columnStatus={columnStatus} />
+            <TicketCard key={ticket.id} ticket={ticket} statusLabel={title} canAssume={canAssume} />
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-400">

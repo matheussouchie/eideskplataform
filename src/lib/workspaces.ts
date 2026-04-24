@@ -36,12 +36,20 @@ export type TicketRow = Database["public"]["Tables"]["tickets"]["Row"];
 export type TicketCommentRow = Database["public"]["Tables"]["ticket_comments"]["Row"];
 export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
 export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
+export type TicketStatusRow = Database["public"]["Tables"]["ticket_statuses"]["Row"];
 
 export type DepartmentWithTeams = DepartmentRow & {
   teams: TeamRow[];
 };
 
+export type TicketStatusWithMeta = TicketStatusRow;
+
 export type TicketWithRelations = TicketRow & {
+  status_info: {
+    id: string;
+    name: string;
+    order: number;
+  } | null;
   department: {
     id: string;
     name: string;
@@ -212,6 +220,21 @@ export async function getWorkspaceTeams(workspaceId: string) {
   return (data ?? []) as TeamRow[];
 }
 
+export async function getWorkspaceTicketStatuses(workspaceId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ticket_statuses")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("order", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as TicketStatusRow[];
+}
+
 export async function getWorkspaceDepartmentsWithTeams(workspaceId: string) {
   const [departments, teams] = await Promise.all([
     getWorkspaceDepartments(workspaceId),
@@ -241,16 +264,19 @@ export async function getWorkspaceTickets(workspaceId: string) {
 
 export async function getWorkspaceTicketsDetailed(workspaceId: string) {
   const supabase = await getSupabaseServerClient();
-  const [tickets, departments, teams] = await Promise.all([
+  const [tickets, departments, teams, statuses] = await Promise.all([
     getWorkspaceTickets(workspaceId),
     getWorkspaceDepartments(workspaceId),
     getWorkspaceTeams(workspaceId),
+    getWorkspaceTicketStatuses(workspaceId),
   ]);
 
   const relatedUserIds = Array.from(
     new Set(
       tickets
-        .flatMap((ticket: TicketRow) => [ticket.requester_id, ticket.assignee_id].filter(Boolean))
+        .flatMap((ticket: TicketRow) =>
+          [ticket.requester_id, ticket.assigned_to ?? ticket.assignee_id].filter(Boolean),
+        )
         .filter((userId): userId is string => Boolean(userId)),
     ),
   );
@@ -304,12 +330,28 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
     ]),
   );
 
+  const statusesMap = new Map(
+    statuses.map((status: TicketStatusRow) => [
+      status.id,
+      {
+        id: status.id,
+        name: status.name,
+        order: status.order,
+      },
+    ]),
+  );
+
   return tickets.map((ticket: TicketRow) => ({
     ...ticket,
+    status_info: statusesMap.get(ticket.status_id) ?? null,
     department: departmentsMap.get(ticket.department_id) ?? null,
     team: teamsMap.get(ticket.team_id) ?? null,
     requester: profilesMap.get(ticket.requester_id) ?? null,
-    assignee: ticket.assignee_id ? profilesMap.get(ticket.assignee_id) ?? null : null,
+    assignee: ticket.assigned_to
+      ? profilesMap.get(ticket.assigned_to) ?? null
+      : ticket.assignee_id
+        ? profilesMap.get(ticket.assignee_id) ?? null
+        : null,
   })) as TicketWithRelations[];
 }
 
@@ -377,7 +419,8 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
 
 export function getTicketsForUser(tickets: TicketWithRelations[], userId: string) {
   return tickets.filter(
-    (ticket: TicketWithRelations) => ticket.assignee_id === userId || ticket.requester_id === userId,
+    (ticket: TicketWithRelations) =>
+      ticket.assigned_to === userId || ticket.assignee_id === userId || ticket.requester_id === userId,
   );
 }
 

@@ -9,6 +9,7 @@ import {
   getTicketsForUser,
   getWorkspaceDepartmentsWithTeams,
   getWorkspaceMembers,
+  getWorkspaceTicketStatuses,
   getWorkspaceTicketsDetailed,
   requireActiveWorkspace,
 } from "@/lib/workspaces";
@@ -26,10 +27,11 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
   const params = await searchParams;
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
-  const [allTickets, members, departmentsWithTeams] = await Promise.all([
+  const [allTickets, members, departmentsWithTeams, statuses] = await Promise.all([
     getWorkspaceTicketsDetailed(activeMembership.workspace!.id),
     getWorkspaceMembers(activeMembership.workspace!.id),
     getWorkspaceDepartmentsWithTeams(activeMembership.workspace!.id),
+    getWorkspaceTicketStatuses(activeMembership.workspace!.id),
   ]);
 
   const currentMember = members.find((member) => member.user_id === user.id) ?? null;
@@ -62,6 +64,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
       ticket.requester?.full_name,
       ticket.assignee?.full_name,
       ticket.priority,
+      ticket.status_info?.name,
       ticket.team?.name,
       ticket.department?.name,
     ]
@@ -69,12 +72,30 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
       .some((value) => String(value).toLowerCase().includes(query));
   });
 
-  const columns = {
-    novo: tickets.filter((ticket) => ticket.status === "open" && !ticket.assignee_id),
-    atendimento: tickets.filter((ticket) => ticket.status === "in_progress"),
-    aguardando: tickets.filter((ticket) => ticket.status === "open" && Boolean(ticket.assignee_id)),
-    resolvido: tickets.filter((ticket) => ["resolved", "closed"].includes(ticket.status)),
+  const canManageWorkflow = activeMembership.role === "agent";
+
+  const toneForStatus = (statusName: string) => {
+    const normalized = statusName.trim().toLowerCase();
+
+    if (normalized.includes("atendimento")) {
+      return "amber" as const;
+    }
+
+    if (normalized.includes("aguardando")) {
+      return "violet" as const;
+    }
+
+    if (normalized.includes("resolvido") || normalized.includes("fechado")) {
+      return "emerald" as const;
+    }
+
+    return "blue" as const;
   };
+
+  const columns = statuses.map((status) => ({
+    status,
+    tickets: tickets.filter((ticket) => ticket.status_id === status.id),
+  }));
 
   return (
     <section className="space-y-6">
@@ -129,22 +150,14 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Novo</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{columns.novo.length}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Em atendimento</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{columns.atendimento.length}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Aguardando cliente</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{columns.aguardando.length}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Resolvido</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{columns.resolvido.length}</p>
-            </div>
+            {columns.map((column) => (
+              <div key={column.status.id} className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  {column.status.name}
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{column.tickets.length}</p>
+              </div>
+            ))}
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3 text-xs font-medium text-slate-500">
@@ -246,25 +259,15 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
 
       <section className="overflow-x-auto pb-2">
         <div className="flex min-w-max gap-4">
-          <KanbanColumn title="Novo" tone="blue" tickets={columns.novo} columnStatus="novo" />
-          <KanbanColumn
-            title="Em atendimento"
-            tone="amber"
-            tickets={columns.atendimento}
-            columnStatus="em-atendimento"
-          />
-          <KanbanColumn
-            title="Aguardando cliente"
-            tone="violet"
-            tickets={columns.aguardando}
-            columnStatus="aguardando-cliente"
-          />
-          <KanbanColumn
-            title="Resolvido"
-            tone="emerald"
-            tickets={columns.resolvido}
-            columnStatus="resolvido"
-          />
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.status.id}
+              title={column.status.name}
+              tone={toneForStatus(column.status.name)}
+              tickets={column.tickets}
+              canAssume={canManageWorkflow}
+            />
+          ))}
         </div>
       </section>
     </section>

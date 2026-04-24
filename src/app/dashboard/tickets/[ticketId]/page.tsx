@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateTicketStatusAction } from "@/app/actions/tickets";
+import { assumeTicketAction, updateTicketStatusAction } from "@/app/actions/tickets";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { getTicketById, getTicketComments, requireActiveWorkspace } from "@/lib/workspaces";
+import {
+  getTicketById,
+  getTicketComments,
+  getWorkspaceTicketStatuses,
+  requireActiveWorkspace,
+} from "@/lib/workspaces";
 
 function priorityVariant(priority: "low" | "medium" | "high" | "urgent") {
   switch (priority) {
@@ -34,6 +39,8 @@ export default async function TicketDetailsPage({
   }
 
   const comments = await getTicketComments(ticket.id, activeMembership.workspace!.id);
+  const statuses = await getWorkspaceTicketStatuses(activeMembership.workspace!.id);
+  const canManageWorkflow = activeMembership.role === "agent";
 
   return (
     <section className="space-y-6">
@@ -63,50 +70,64 @@ export default async function TicketDetailsPage({
             </Badge>
             <Badge
               variant={
-                ticket.status === "in_progress"
+                ticket.status_info?.name === "Em atendimento"
                   ? "status-progress"
-                  : ticket.status === "open"
+                  : ticket.status_info?.name === "Aguardando cliente"
+                    ? "status-waiting"
+                    : ticket.status_info?.name === "Novo"
                     ? "status-open"
                     : "status-resolved"
               }
             >
-              {ticket.status === "open"
-                ? "Aberto"
-                : ticket.status === "in_progress"
-                  ? "Em atendimento"
-                  : ticket.status === "resolved"
-                    ? "Resolvido"
-                    : "Fechado"}
+              {ticket.status_info?.name ?? "Status"}
             </Badge>
           </div>
         </div>
 
-        {["owner", "admin", "agent"].includes(activeMembership.role) ? (
-          <form
-            action={updateTicketStatusAction}
-            className="flex w-full max-w-sm flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <input type="hidden" name="ticketId" value={ticket.id} />
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-slate-700">Atualizar status</span>
-              <select
-                name="status"
-                defaultValue={ticket.status}
-                className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white"
+        {canManageWorkflow ? (
+          <div className="flex w-full max-w-sm flex-col gap-3">
+            {!ticket.assigned_to ? (
+              <form
+                action={assumeTicketAction}
+                className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
               >
-                <option value="open">Aberto</option>
-                <option value="in_progress">Em atendimento</option>
-                <option value="resolved">Resolvido</option>
-                <option value="closed">Fechado</option>
-              </select>
-            </label>
-            <SubmitButton
-              className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-              pendingLabel="Salvando..."
+                <input type="hidden" name="ticketId" value={ticket.id} />
+                <SubmitButton
+                  className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  pendingLabel="Assumindo..."
+                >
+                  Assumir ticket
+                </SubmitButton>
+              </form>
+            ) : null}
+
+            <form
+              action={updateTicketStatusAction}
+              className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
             >
-              Salvar status
-            </SubmitButton>
-          </form>
+              <input type="hidden" name="ticketId" value={ticket.id} />
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-700">Atualizar status</span>
+                <select
+                  name="statusId"
+                  defaultValue={ticket.status_id}
+                  className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white"
+                >
+                  {statuses.map((status) => (
+                    <option key={status.id} value={status.id}>
+                      {status.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <SubmitButton
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                pendingLabel="Salvando..."
+              >
+                Salvar status
+              </SubmitButton>
+            </form>
+          </div>
         ) : null}
       </div>
 
