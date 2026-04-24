@@ -1,0 +1,177 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          full_name: string | null;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          full_name?: string | null;
+          id: string;
+          updated_at?: string;
+        };
+        Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          full_name?: string | null;
+          id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workspaces: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          name: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          name: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workspace_memberships: {
+        Row: {
+          created_at: string;
+          id: number;
+          role: Database["public"]["Enums"]["workspace_role"];
+          user_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          role?: Database["public"]["Enums"]["workspace_role"];
+          user_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          role?: Database["public"]["Enums"]["workspace_role"];
+          user_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
+      tickets: {
+        Row: {
+          assignee_id: string | null;
+          created_at: string;
+          description: string;
+          id: string;
+          priority: Database["public"]["Enums"]["ticket_priority"];
+          requester_id: string;
+          status: Database["public"]["Enums"]["ticket_status"];
+          title: string;
+          updated_at: string;
+          workspace_id: string;
+        };
+        Insert: {
+          assignee_id?: string | null;
+          created_at?: string;
+          description: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"];
+          requester_id: string;
+          status?: Database["public"]["Enums"]["ticket_status"];
+          title: string;
+          updated_at?: string;
+          workspace_id: string;
+        };
+        Update: {
+          assignee_id?: string | null;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"];
+          requester_id?: string;
+          status?: Database["public"]["Enums"]["ticket_status"];
+          title?: string;
+          updated_at?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
+      ticket_comments: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: string;
+          internal: boolean;
+          ticket_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+          internal?: boolean;
+          ticket_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          internal?: boolean;
+          ticket_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      is_workspace_member: {
+        Args: {
+          workspace_uuid: string;
+        };
+        Returns: boolean;
+      };
+      workspace_user_role: {
+        Args: {
+          workspace_uuid: string;
+        };
+        Returns: Database["public"]["Enums"]["workspace_role"] | null;
+      };
+    };
+    Enums: {
+      ticket_priority: "low" | "medium" | "high" | "urgent";
+      ticket_status: "open" | "in_progress" | "resolved" | "closed";
+      workspace_role: "owner" | "admin" | "agent" | "requester";
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+};
