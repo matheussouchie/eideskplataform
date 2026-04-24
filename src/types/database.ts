@@ -377,13 +377,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      archive_workspace_agent: {
+        Args: {
+          agent_user_id: string;
+          workspace_uuid: string;
+        };
+        Returns: undefined;
+      };
       current_domain_id: {
         Args: Record<PropertyKey, never>;
         Returns: string | null;
       };
-      is_workspace_member: {
+      is_domain_admin: {
         Args: {
-          workspace_uuid: string;
+          domain_uuid: string;
         };
         Returns: boolean;
       };
@@ -392,6 +399,31 @@ export type Database = {
           domain_uuid: string;
         };
         Returns: boolean;
+      };
+      is_workspace_member: {
+        Args: {
+          workspace_uuid: string;
+        };
+        Returns: boolean;
+      };
+      provision_workspace_agent: {
+        Args: {
+          agent_full_name: string;
+          agent_user_id: string;
+          team_uuid: string;
+          workspace_uuid: string;
+        };
+        Returns: undefined;
+      };
+      update_workspace_agent: {
+        Args: {
+          active: boolean;
+          agent_full_name: string;
+          agent_user_id: string;
+          team_uuid: string;
+          workspace_uuid: string;
+        };
+        Returns: undefined;
       };
       workspace_user_role: {
         Args: {

@@ -7,6 +7,7 @@ import {
   updateTicketStatusAction,
 } from "@/app/actions/tickets";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { TicketMessageComposer } from "@/components/tickets/ticket-message-composer";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -237,54 +238,12 @@ export default async function TicketDetailsPage({
               </p>
             </div>
 
-            <form className="mt-5 grid gap-3" action={postTicketMessageAction}>
-              <input type="hidden" name="ticketId" value={ticket.id} />
-              <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
-
-              {canUseInternalMessages ? (
-                <label className="grid gap-2">
-                  <span className="text-sm font-medium text-slate-700">Visibilidade</span>
-                  <select
-                    name="visibility"
-                    defaultValue="public"
-                    className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
-                  >
-                    <option value="public">Mensagem publica</option>
-                    <option value="internal">Mensagem interna</option>
-                  </select>
-                </label>
-              ) : (
-                <input type="hidden" name="visibility" value="public" />
-              )}
-
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Mensagem</span>
-                <textarea
-                  name="body"
-                  rows={5}
-                  placeholder="Escreva uma atualizacao clara para o ticket."
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
-                />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Anexos</span>
-                <input
-                  type="file"
-                  name="attachments"
-                  multiple
-                  className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600"
-                />
-                <span className="text-xs text-slate-500">Cada arquivo pode ter ate 50MB.</span>
-              </label>
-
-              <SubmitButton
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-                pendingLabel="Enviando..."
-              >
-                Enviar mensagem
-              </SubmitButton>
-            </form>
+            <TicketMessageComposer
+              action={postTicketMessageAction}
+              canUseInternalMessages={canUseInternalMessages}
+              shouldClearDraft={query.success === "Mensagem enviada"}
+              ticketId={ticket.id}
+            />
           </Card>
 
           <Card className="p-5">
