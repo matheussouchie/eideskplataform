@@ -11,7 +11,7 @@ type KanbanColumnProps = {
   isDropActive?: boolean;
   onDragLeaveColumn?: () => void;
   onDragOverColumn?: () => void;
-  onDropTicket?: () => void;
+  onDropTicket?: (event: DragEvent<HTMLElement>) => void;
   renderTicket?: (ticket: TicketWithRelations) => ReactNode;
 };
 
@@ -48,7 +48,7 @@ export function KanbanColumn({
     }
 
     event.preventDefault();
-    onDropTicket();
+    onDropTicket(event);
   };
 
   return (

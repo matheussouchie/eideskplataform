@@ -51,7 +51,7 @@ export function TicketCard({
   return (
     <Card className="border-slate-200 bg-white p-4 transition duration-200 hover:border-sky-300 hover:shadow-[0_14px_28px_rgba(59,130,246,0.12)]">
       <div className="space-y-4">
-        <Link href={`/dashboard/tickets/${ticket.id}`} className="group block">
+        <Link href={`/dashboard/tickets/${ticket.id}`} draggable={false} className="group block">
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-2">

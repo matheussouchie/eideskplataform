@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { moveTicketStatusAction } from "@/app/actions/tickets";
@@ -73,13 +73,15 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
     setBoardColumns(columns);
   }, [columns]);
 
-  const handleDrop = (targetStatusId: string) => {
-    if (!canManageWorkflow || !draggingTicketId) {
+  const handleDrop = (targetStatusId: string, event?: DragEvent<HTMLElement>) => {
+    const droppedTicketId = draggingTicketId ?? event?.dataTransfer.getData("text/plain") ?? null;
+
+    if (!canManageWorkflow || !droppedTicketId) {
       return;
     }
 
     const sourceColumn = boardColumns.find((column) =>
-      column.tickets.some((ticket) => ticket.id === draggingTicketId),
+      column.tickets.some((ticket) => ticket.id === droppedTicketId),
     );
 
     if (!sourceColumn || sourceColumn.status.id === targetStatusId) {
@@ -89,7 +91,7 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
     }
 
     const previousColumns = boardColumns;
-    const nextColumns = moveTicketBetweenColumns(boardColumns, draggingTicketId, targetStatusId);
+    const nextColumns = moveTicketBetweenColumns(boardColumns, droppedTicketId, targetStatusId);
 
     setBoardColumns(nextColumns);
     setDraggingTicketId(null);
@@ -99,7 +101,7 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
     startTransition(async () => {
       const result = await moveTicketStatusAction({
         statusId: targetStatusId,
-        ticketId: draggingTicketId,
+        ticketId: droppedTicketId,
       });
 
       if (!result.success) {
@@ -145,8 +147,8 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
               isDropActive={dropStatusId === column.status.id}
               onDropTicket={
                 canManageWorkflow
-                  ? () => {
-                      handleDrop(column.status.id);
+                  ? (event) => {
+                      handleDrop(column.status.id, event);
                     }
                   : undefined
               }
@@ -168,11 +170,13 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
                 <div
                   key={ticket.id}
                   draggable={canManageWorkflow}
-                  onDragStart={() => {
+                  onDragStart={(event) => {
                     if (!canManageWorkflow) {
                       return;
                     }
 
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", ticket.id);
                     setDraggingTicketId(ticket.id);
                     setError(null);
                   }}

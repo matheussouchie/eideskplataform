@@ -12,6 +12,7 @@ import type { Database } from "@/types/database";
 
 const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024;
 const ATTACHMENTS_BUCKET = "ticket-attachments";
+const WORKFLOW_ROLES: Database["public"]["Enums"]["workspace_role"][] = ["owner", "admin", "agent"];
 
 type AgentMembershipLookupRow = {
   created_at: string;
@@ -341,7 +342,7 @@ export async function moveTicketStatusAction(args: { statusId: string; ticketId:
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
 
-  if (activeMembership.role !== "agent") {
+  if (!WORKFLOW_ROLES.includes(activeMembership.role)) {
     return {
       error: "Sem permissao para mover tickets no kanban",
       success: false,
@@ -363,7 +364,7 @@ export async function updateTicketStatusAction(formData: FormData) {
   const statusId = readRequired(formData, "statusId");
   const redirectTo = readRedirectTarget(formData, `/dashboard/tickets/${ticketId}`);
 
-  if (activeMembership.role !== "agent") {
+  if (!WORKFLOW_ROLES.includes(activeMembership.role)) {
     redirect(`${redirectTo}?error=Sem+permissao+para+alterar+status`);
   }
 
@@ -388,7 +389,7 @@ export async function assumeTicketAction(formData: FormData) {
   const ticketId = readRequired(formData, "ticketId");
   const redirectTo = readRedirectTarget(formData, "/dashboard/tickets");
 
-  if (activeMembership.role !== "agent") {
+  if (!WORKFLOW_ROLES.includes(activeMembership.role)) {
     redirect(`${redirectTo}?error=Sem+permissao+para+assumir+ticket`);
   }
 

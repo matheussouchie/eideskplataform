@@ -81,7 +81,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
       .some((value) => String(value).toLowerCase().includes(query));
   });
 
-  const canManageWorkflow = activeMembership.role === "agent";
+  const canManageWorkflow = ["owner", "admin", "agent"].includes(activeMembership.role);
 
   const columns = statuses.map((status) => ({
     status,

@@ -57,7 +57,7 @@ export default async function TicketDetailsPage({
     notFound();
   }
 
-  const canManageWorkflow = activeMembership.role === "agent";
+  const canManageWorkflow = ["owner", "admin", "agent"].includes(activeMembership.role);
   const canUseInternalMessages = activeMembership.role !== "requester";
   const comments = await getTicketComments(ticket.id, activeMembership.workspace!.id, {
     includeInternal: canUseInternalMessages,
