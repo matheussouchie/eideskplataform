@@ -75,12 +75,12 @@ export function TicketMessageComposer({
 
       {canUseInternalMessages ? (
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Visibilidade</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Visibilidade</span>
           <select
             name="visibility"
             value={visibility}
             onChange={(event) => setVisibility(event.target.value as "public" | "internal")}
-            className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
+            className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
           >
             <option value="public">Mensagem publica</option>
             <option value="internal">Mensagem interna</option>
@@ -91,33 +91,33 @@ export function TicketMessageComposer({
       )}
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-slate-700">Mensagem</span>
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Mensagem</span>
         <textarea
           name="body"
           rows={5}
           value={body}
           onChange={(event) => setBody(event.target.value)}
           placeholder="Escreva uma atualizacao clara para o ticket."
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           Rascunho salvo automaticamente neste navegador.
         </span>
       </label>
 
       <label className="grid gap-2">
-        <span className="text-sm font-medium text-slate-700">Anexos</span>
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Anexos</span>
         <input
           type="file"
           name="attachments"
           multiple
-          className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600"
+          className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         />
-        <span className="text-xs text-slate-500">Cada arquivo pode ter ate 50MB.</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">Cada arquivo pode ter ate 50MB.</span>
       </label>
 
       <SubmitButton
-        className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+        className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
         pendingLabel="Enviando..."
       >
         Enviar mensagem

@@ -58,16 +58,16 @@ export function KanbanColumn({
       onDrop={handleDrop}
       className={
         isDropActive
-          ? "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-sky-300 bg-sky-50/70 p-3 shadow-[0_0_0_1px_rgba(56,189,248,0.35)]"
-          : "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-slate-200 bg-slate-50/80 p-3"
+          ? "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-sky-300 bg-sky-50/70 p-3 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-500/50 dark:bg-sky-500/10"
+          : "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/60"
       }
     >
-      <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm">
+      <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-950">
         <div className="flex items-center gap-3">
           <div className={`h-10 w-1.5 rounded-full bg-gradient-to-b ${toneMap[tone]}`} />
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-            <p className="text-xs text-slate-500">{tickets.length} tickets</p>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{tickets.length} tickets</p>
           </div>
         </div>
       </div>
@@ -82,7 +82,7 @@ export function KanbanColumn({
             ),
           )
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-400">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-500">
             Nenhum ticket nesta etapa.
           </div>
         )}

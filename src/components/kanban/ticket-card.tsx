@@ -49,7 +49,7 @@ export function TicketCard({
   const responsibleName = ticket.assignee?.full_name ?? "Sem responsavel";
 
   return (
-    <Card className="border-slate-200 bg-white p-4 transition duration-200 hover:border-sky-300 hover:shadow-[0_14px_28px_rgba(59,130,246,0.12)]">
+    <Card className="border-slate-200 bg-white p-4 transition duration-200 hover:border-sky-300 hover:shadow-[0_14px_28px_rgba(59,130,246,0.12)] dark:border-slate-800 dark:bg-slate-950 dark:hover:border-sky-500">
       <div className="space-y-4">
         <Link href={`/dashboard/tickets/${ticket.id}`} draggable={false} className="group block">
           <div className="space-y-4">
@@ -58,27 +58,27 @@ export function TicketCard({
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                   #{ticket.id.slice(-3)}
                 </span>
-                <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
+                <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-900 dark:text-white">
                   {ticket.title}
                 </h3>
               </div>
               <div className="flex h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500 transition group-hover:scale-125" />
             </div>
 
-            <p className="line-clamp-2 text-sm leading-5 text-slate-600">{ticket.description}</p>
+            <p className="line-clamp-2 text-sm leading-5 text-slate-600 dark:text-slate-300">{ticket.description}</p>
 
-            <div className="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
-              <p className="font-medium text-slate-900">{requesterName}</p>
+            <div className="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+              <p className="font-medium text-slate-900 dark:text-white">{requesterName}</p>
               <p className="truncate">Responsavel: {responsibleName}</p>
               {ticket.assignee ? (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {ticket.assignee.is_active ? "Agente ativo" : "Agente inativo"}
                 </p>
               ) : null}
-              <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+              <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                 {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
               </p>
-              <p className="mt-1 truncate text-xs text-slate-500">
+              <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                 {ticket.product?.name ?? "Produto"} / {ticket.category?.name ?? "Categoria"}
               </p>
             </div>
@@ -104,7 +104,7 @@ export function TicketCard({
             <input type="hidden" name="redirectTo" value="/dashboard/tickets" />
             <button
               type="submit"
-              className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
             >
               Assumir ticket
             </button>

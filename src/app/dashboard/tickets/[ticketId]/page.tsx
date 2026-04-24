@@ -71,17 +71,17 @@ export default async function TicketDetailsPage({
     <section className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
-          <Link href="/dashboard/tickets" className="text-sm font-semibold text-sky-700">
+          <Link href="/dashboard/tickets" className="text-sm font-semibold text-sky-700 dark:text-sky-300">
             Voltar para o kanban
           </Link>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">
               Ticket #{ticket.id.slice(-3)}
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
               {ticket.title}
             </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{ticket.description}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">{ticket.description}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant={priorityVariant(ticket.priority)}>
@@ -119,7 +119,7 @@ export default async function TicketDetailsPage({
                 <input type="hidden" name="ticketId" value={ticket.id} />
                 <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
                 <SubmitButton
-                  className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                   pendingLabel="Assumindo..."
                 >
                   Assumir ticket
@@ -134,11 +134,11 @@ export default async function TicketDetailsPage({
               <input type="hidden" name="ticketId" value={ticket.id} />
               <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Atualizar status</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Atualizar status</span>
                 <select
                   name="statusId"
                   defaultValue={ticket.status_id}
-                  className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white"
+                  className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
                 >
                   {statuses.map((status) => (
                     <option key={status.id} value={status.id}>
@@ -148,7 +148,7 @@ export default async function TicketDetailsPage({
                 </select>
               </label>
               <SubmitButton
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                 pendingLabel="Salvando..."
               >
                 Salvar status
@@ -159,14 +159,14 @@ export default async function TicketDetailsPage({
       </div>
 
       {query.error ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {query.error}
-        </p>
+          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+            {query.error}
+          </p>
       ) : null}
       {query.success ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {query.success}
-        </p>
+          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+            {query.success}
+          </p>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.45fr]">

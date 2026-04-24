@@ -39,6 +39,11 @@ function readRedirectTarget(formData: FormData, fallback: string) {
   return typeof value === "string" && value.startsWith("/dashboard") ? value : fallback;
 }
 
+function readOptionalRedirectTarget(formData: FormData, name: string, fallback: string) {
+  const value = formData.get(name);
+  return typeof value === "string" && value.startsWith("/dashboard") ? value : fallback;
+}
+
 function revalidateTicketViews(ticketId?: string) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/tickets");
@@ -152,6 +157,8 @@ export async function createTicketAction(formData: FormData) {
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
   const supabase = await getSupabaseServerClient();
+  const redirectTo = readRedirectTarget(formData, "/dashboard/tickets");
+  const successRedirectTo = readOptionalRedirectTarget(formData, "successRedirectTo", "/dashboard/tickets");
 
   const title = readRequired(formData, "title");
   const description = readRequired(formData, "description");
@@ -169,7 +176,7 @@ export async function createTicketAction(formData: FormData) {
   ];
 
   if (!allowedPriorities.includes(priority)) {
-    redirect("/dashboard/tickets?error=Prioridade+invalida");
+    redirect(`${redirectTo}?error=Prioridade+invalida`);
   }
 
   const { data: team, error: teamError } = await supabase
@@ -180,11 +187,11 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (teamError || !team) {
-    redirect("/dashboard/tickets?error=Time+invalido");
+    redirect(`${redirectTo}?error=Time+invalido`);
   }
 
   if (team.department_id !== departmentId) {
-    redirect("/dashboard/tickets?error=Time+nao+pertence+ao+departamento+selecionado");
+    redirect(`${redirectTo}?error=Time+nao+pertence+ao+departamento+selecionado`);
   }
 
   const { data: product, error: productError } = await supabase
@@ -195,7 +202,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (productError || !product) {
-    redirect("/dashboard/tickets?error=Produto+invalido");
+    redirect(`${redirectTo}?error=Produto+invalido`);
   }
 
   const { data: category, error: categoryError } = await supabase
@@ -206,7 +213,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (categoryError || !category) {
-    redirect("/dashboard/tickets?error=Categoria+invalida");
+    redirect(`${redirectTo}?error=Categoria+invalida`);
   }
 
   const { data: initialStatus, error: initialStatusError } = await supabase
@@ -218,7 +225,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (initialStatusError || !initialStatus) {
-    redirect("/dashboard/tickets?error=Status+inicial+nao+configurado");
+    redirect(`${redirectTo}?error=Status+inicial+nao+configurado`);
   }
 
   const autoAssignedTo = await resolveAutoAssignee({
@@ -246,7 +253,7 @@ export async function createTicketAction(formData: FormData) {
     .single();
 
   if (error || !ticket) {
-    redirect(`/dashboard/tickets?error=${encodeURIComponent(error?.message ?? "Falha ao criar ticket")}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(error?.message ?? "Falha ao criar ticket")}`);
   }
 
   try {
@@ -270,11 +277,18 @@ export async function createTicketAction(formData: FormData) {
       });
     }
   } catch (commentError) {
-    redirect(`/dashboard/tickets?error=${encodeURIComponent((commentError as Error).message)}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent((commentError as Error).message)}`);
   }
 
+  await supabase
+    .from("ticket_drafts")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("workspace_id", activeMembership.workspace!.id);
+
   revalidateTicketViews(ticket.id);
-  redirect("/dashboard/tickets?success=Ticket+criado");
+  revalidatePath("/dashboard/tickets/new");
+  redirect(`${successRedirectTo}${successRedirectTo.includes("?") ? "&" : "?"}success=Ticket+criado`);
 }
 
 async function updateTicketStatusCore(args: {

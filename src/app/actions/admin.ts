@@ -467,3 +467,72 @@ export async function deleteTeamAction(formData: FormData) {
   revalidatePath(SETTINGS_ROUTE);
   redirectToSettings("teams", "Time removido com sucesso", "success");
 }
+
+export async function repairTicketGovernanceAction(formData: FormData) {
+  const activeMembership = await requireAdminWorkspaceAccess();
+  const ticketId = readRequiredUuid(formData, "ticketId");
+  const departmentId = readRequiredUuid(formData, "departmentId");
+  const teamId = readRequiredUuid(formData, "teamId");
+  const assigneeId = readOptionalUuid(formData, "assignedTo");
+  const redirectTo = "/dashboard/admin/tickets";
+
+  try {
+    const supabase = await getSupabaseServerClient();
+
+    const { data: team, error: teamError } = await supabase
+      .from("teams")
+      .select("id, department_id")
+      .eq("id", teamId)
+      .eq("workspace_id", activeMembership.workspace!.id)
+      .maybeSingle();
+
+    if (teamError || !team) {
+      throw new Error("Time invalido.");
+    }
+
+    if (team.department_id !== departmentId) {
+      throw new Error("O time precisa pertencer ao departamento selecionado.");
+    }
+
+    if (assigneeId) {
+      const { data: assigneeProfile, error: assigneeError } = await supabase
+        .from("profiles")
+        .select("id, team_id, domain_id")
+        .eq("id", assigneeId)
+        .maybeSingle();
+
+      if (assigneeError || !assigneeProfile) {
+        throw new Error("Agente invalido.");
+      }
+
+      if (assigneeProfile.domain_id !== activeMembership.workspace!.domain_id) {
+        throw new Error("Agente fora do dominio atual.");
+      }
+
+      if (assigneeProfile.team_id !== teamId) {
+        throw new Error("O agente precisa pertencer ao time selecionado.");
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from("tickets")
+      .update({
+        assigned_to: assigneeId,
+        department_id: departmentId,
+        team_id: teamId,
+      })
+      .eq("id", ticketId)
+      .eq("workspace_id", activeMembership.workspace!.id);
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+  } catch (error) {
+    redirect(`${redirectTo}?error=${encodeURIComponent((error as Error).message)}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/tickets");
+  revalidatePath("/dashboard/admin/tickets");
+  redirect(`${redirectTo}?success=Ticket+ajustado+com+sucesso`);
+}

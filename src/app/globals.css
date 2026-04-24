@@ -10,6 +10,10 @@ html {
   background: #f5f7fb;
 }
 
+html.dark {
+  background: #020817;
+}
+
 body {
   min-height: 100vh;
   background:
@@ -17,6 +21,13 @@ body {
     linear-gradient(180deg, #f8fbff 0%, #f5f7fb 42%, #f4f7fb 100%);
   color: #0f172a;
   font-family: var(--font-sans);
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 28%),
+    linear-gradient(180deg, #020817 0%, #061224 46%, #020817 100%);
+  color: #e2e8f0;
 }
 
 * {
@@ -39,4 +50,10 @@ body {
 
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (min-width: 1280px) {
+  html[data-sidebar="collapsed"] .dashboard-shell {
+    padding-left: 108px;
+  }
 }

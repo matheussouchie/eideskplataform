@@ -58,6 +58,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     { id: "categories", label: "Categorias" },
     { id: "departments", label: "Departamentos" },
     { id: "teams", label: "Times" },
+    { id: "governanca", label: "Governanca" },
   ];
 
   return (
@@ -99,7 +100,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </p>
       ) : null}
 
-      <Card className="p-5" id="workspace">
+      <Card className="border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950" id="workspace">
         <div className="mb-5">
           <h2 className="text-lg font-semibold text-slate-900">Workspace</h2>
           <p className="mt-1 text-sm text-slate-500">Administracao base do tenant atual.</p>
@@ -142,7 +143,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       {canEdit ? (
         <>
-          <Card className="p-5" id="agents">
+          <Card className="border-blue-200 bg-blue-50/55 p-5 dark:border-blue-500/20 dark:bg-blue-500/5" id="agents">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Agentes</h2>
               <p className="mt-1 text-sm text-slate-500">Criacao, edicao e arquivamento de agentes do workspace.</p>
@@ -245,7 +246,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="p-5" id="products">
+          <Card className="border-rose-200 bg-rose-50/55 p-5 dark:border-rose-500/20 dark:bg-rose-500/5" id="products">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Produtos</h2>
               <p className="mt-1 text-sm text-slate-500">Estrutura hierarquica de classificacao do ticket.</p>
@@ -319,7 +320,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="p-5" id="categories">
+          <Card className="border-emerald-200 bg-emerald-50/55 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/5" id="categories">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Categorias</h2>
               <p className="mt-1 text-sm text-slate-500">Classificacao plana para o contexto do ticket.</p>
@@ -365,7 +366,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="p-5" id="departments">
+          <Card className="border-amber-200 bg-amber-50/55 p-5 dark:border-amber-500/20 dark:bg-amber-500/5" id="departments">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Departamentos</h2>
               <p className="mt-1 text-sm text-slate-500">Estrutura macro do atendimento.</p>
@@ -412,7 +413,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="p-5" id="teams">
+          <Card className="border-violet-200 bg-violet-50/55 p-5 dark:border-violet-500/20 dark:bg-violet-500/5" id="teams">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Times</h2>
               <p className="mt-1 text-sm text-slate-500">Unidades operacionais vinculadas a departamentos.</p>
@@ -479,6 +480,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 )),
               )}
             </div>
+          </Card>
+
+          <Card className="border-sky-200 bg-sky-50/55 p-5 dark:border-sky-500/20 dark:bg-sky-500/5" id="governanca">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-slate-900">Governanca de tickets</h2>
+              <p className="mt-1 text-sm text-slate-500">Acesse a triagem global para corrigir tickets desalinhados.</p>
+            </div>
+
+            <a
+              href="/dashboard/admin/tickets"
+              className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Abrir gestao global de tickets
+            </a>
           </Card>
         </>
       ) : (

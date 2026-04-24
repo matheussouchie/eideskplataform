@@ -41,6 +41,7 @@ export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
 export type TicketStatusRow = Database["public"]["Tables"]["ticket_statuses"]["Row"];
 export type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+export type TicketDraftRow = Database["public"]["Tables"]["ticket_drafts"]["Row"];
 
 export type DepartmentWithTeams = DepartmentRow & {
   teams: TeamRow[];
@@ -106,6 +107,21 @@ export type TicketAttachmentWithUrl = TicketAttachmentRow & {
   signed_url: string | null;
 };
 
+export type UserProfileSettings = {
+  avatar_signed_url: string | null;
+  avatar_url: string | null;
+  domain_id: string;
+  full_name: string | null;
+  id: string;
+  is_active: boolean;
+  team_id: string | null;
+  theme_preference: string;
+};
+
+export type TicketGovernanceIssue = TicketWithRelations & {
+  assignment_issue: "missing-team" | "missing-department" | "team-mismatch" | "assignee-mismatch";
+};
+
 type SignedUrlLookupRow = {
   path: string;
   signedUrl: string | null;
@@ -117,6 +133,7 @@ type ProfileLookupRow = {
   avatar_url: string | null;
   is_active: boolean;
   team_id: string | null;
+  theme_preference?: string;
 };
 
 type MembershipLookupRow = {
@@ -195,7 +212,7 @@ export async function getWorkspaceMembers(workspaceId: string) {
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, is_active, team_id")
+    .select("id, full_name, avatar_url, is_active, team_id, theme_preference")
     .in("id", userIds);
 
   if (profilesError) {
@@ -371,7 +388,7 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
   if (relatedUserIds.length) {
     const { data: profiles, error } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, is_active, team_id")
+      .select("id, full_name, avatar_url, is_active, team_id, theme_preference")
       .in("id", relatedUserIds);
 
     if (error) {
@@ -514,7 +531,7 @@ export async function getTicketComments(
   if (authorIds.length) {
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, is_active, team_id")
+      .select("id, full_name, avatar_url, is_active, team_id, theme_preference")
       .in("id", authorIds);
 
     if (profilesError) {
@@ -656,4 +673,98 @@ export function buildDashboardWorkflowMetrics(
     byAgent,
     byTeam,
   };
+}
+
+export async function getCurrentUserProfile() {
+  const user = await requireUser();
+  const supabase = await getSupabaseServerClient();
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, domain_id, is_active, team_id, theme_preference")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error || !profile) {
+    throw new Error(error?.message ?? "Perfil nao encontrado");
+  }
+
+  let avatarSignedUrl: string | null = null;
+
+  if (profile.avatar_url) {
+    const { data: signed, error: signedError } = await supabase.storage
+      .from("profile-avatars")
+      .createSignedUrl(profile.avatar_url, 60 * 60);
+
+    if (!signedError) {
+      avatarSignedUrl = signed.signedUrl;
+    }
+  }
+
+  return {
+    ...profile,
+    avatar_signed_url: avatarSignedUrl,
+    theme_preference: profile.theme_preference ?? "light",
+  } as UserProfileSettings;
+}
+
+export async function getUserTicketDraft(workspaceId: string, userId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ticket_drafts")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? null) as TicketDraftRow | null;
+}
+
+export async function getWorkspaceTicketGovernanceIssues(workspaceId: string) {
+  const [tickets, members, departmentsWithTeams] = await Promise.all([
+    getWorkspaceTicketsDetailed(workspaceId),
+    getWorkspaceMembers(workspaceId),
+    getWorkspaceDepartmentsWithTeams(workspaceId),
+  ]);
+
+  const teamById = new Map(
+    departmentsWithTeams.flatMap((department: DepartmentWithTeams) =>
+      department.teams.map((team: TeamRow) => [team.id, team]),
+    ),
+  );
+  const profileById = new Map(
+    members
+      .filter((member: WorkspaceMemberRow) => member.profile)
+      .map((member: WorkspaceMemberRow) => [member.user_id, member.profile!]),
+  );
+
+  return tickets.flatMap((ticket: TicketWithRelations) => {
+    const issues: TicketGovernanceIssue[] = [];
+    const team = ticket.team_id ? teamById.get(ticket.team_id) ?? null : null;
+    const assigneeProfile = ticket.assigned_to ? profileById.get(ticket.assigned_to) ?? null : null;
+
+    if (!ticket.department_id) {
+      issues.push({ ...ticket, assignment_issue: "missing-department" });
+    }
+
+    if (!ticket.team_id) {
+      issues.push({ ...ticket, assignment_issue: "missing-team" });
+    }
+
+    if (ticket.team_id && ticket.department_id && team && team.department_id !== ticket.department_id) {
+      issues.push({ ...ticket, assignment_issue: "team-mismatch" });
+    }
+
+    if (
+      ticket.assigned_to &&
+      (!assigneeProfile || !assigneeProfile.team_id || assigneeProfile.team_id !== ticket.team_id)
+    ) {
+      issues.push({ ...ticket, assignment_issue: "assignee-mismatch" });
+    }
+
+    return issues;
+  });
 }

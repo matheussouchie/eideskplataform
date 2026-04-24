@@ -54,6 +54,7 @@ export type Database = {
           id: string;
           is_active: boolean;
           team_id: string | null;
+          theme_preference: string;
           updated_at: string;
         };
         Insert: {
@@ -64,6 +65,7 @@ export type Database = {
           id: string;
           is_active?: boolean;
           team_id?: string | null;
+          theme_preference?: string;
           updated_at?: string;
         };
         Update: {
@@ -74,6 +76,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           team_id?: string | null;
+          theme_preference?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -368,6 +371,48 @@ export type Database = {
           storage_path?: string;
           ticket_id?: string;
           uploaded_by?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
+      ticket_drafts: {
+        Row: {
+          category_id: string | null;
+          created_at: string;
+          description: string | null;
+          domain_id: string;
+          id: string;
+          priority: Database["public"]["Enums"]["ticket_priority"] | null;
+          product_id: string | null;
+          title: string | null;
+          updated_at: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          category_id?: string | null;
+          created_at?: string;
+          description?: string | null;
+          domain_id: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"] | null;
+          product_id?: string | null;
+          title?: string | null;
+          updated_at?: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          category_id?: string | null;
+          created_at?: string;
+          description?: string | null;
+          domain_id?: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"] | null;
+          product_id?: string | null;
+          title?: string | null;
+          updated_at?: string;
+          user_id?: string;
           workspace_id?: string;
         };
         Relationships: [];

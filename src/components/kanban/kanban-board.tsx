@@ -117,13 +117,13 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
   return (
     <div className="space-y-4">
       {error ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
           {error}
         </p>
       ) : null}
 
       {isPending ? (
-        <p className="text-sm font-medium text-slate-500">Atualizando status no kanban...</p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Atualizando status no kanban...</p>
       ) : null}
 
       <section className="overflow-x-auto pb-2">
