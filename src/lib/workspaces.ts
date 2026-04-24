@@ -30,6 +30,7 @@ export type WorkspaceMemberRow = {
 };
 
 export type TicketRow = Database["public"]["Tables"]["tickets"]["Row"];
+export type TicketCommentRow = Database["public"]["Tables"]["ticket_comments"]["Row"];
 
 export type TicketWithRelations = TicketRow & {
   requester: {
@@ -228,7 +229,11 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
   }
 
   const authorIds = Array.from(
-    new Set((comments ?? []).map((comment) => comment.author_id).filter((id): id is string => Boolean(id))),
+    new Set(
+      ((comments ?? []) as TicketCommentRow[])
+        .map((comment: TicketCommentRow) => comment.author_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
   );
 
   let profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
@@ -255,7 +260,7 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
     );
   }
 
-  return (comments ?? []).map((comment) => ({
+  return ((comments ?? []) as TicketCommentRow[]).map((comment: TicketCommentRow) => ({
     ...comment,
     author: profilesMap.get(comment.author_id) ?? null,
   })) as TicketCommentWithAuthor[];
