@@ -31,6 +31,27 @@ export type WorkspaceMemberRow = {
 
 export type TicketRow = Database["public"]["Tables"]["tickets"]["Row"];
 
+export type TicketWithRelations = TicketRow & {
+  requester: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  assignee: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+};
+
+export type TicketCommentWithAuthor = Database["public"]["Tables"]["ticket_comments"]["Row"] & {
+  author: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+};
+
 export async function getUserMemberships() {
   const user = await requireUser();
   const supabase = await getSupabaseServerClient();
@@ -136,4 +157,100 @@ export async function getWorkspaceTickets(workspaceId: string) {
   }
 
   return (data ?? []) as TicketRow[];
+}
+
+export async function getWorkspaceTicketsDetailed(workspaceId: string) {
+  const supabase = await getSupabaseServerClient();
+  const tickets = await getWorkspaceTickets(workspaceId);
+
+  const relatedUserIds = Array.from(
+    new Set(
+      tickets
+        .flatMap((ticket) => [ticket.requester_id, ticket.assignee_id].filter(Boolean))
+        .filter((userId): userId is string => Boolean(userId)),
+    ),
+  );
+
+  let profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
+
+  if (relatedUserIds.length) {
+    const { data: profiles, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", relatedUserIds);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    profilesMap = new Map(
+      (profiles ?? []).map((profile) => [
+        profile.id,
+        {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        },
+      ]),
+    );
+  }
+
+  return tickets.map((ticket) => ({
+    ...ticket,
+    requester: profilesMap.get(ticket.requester_id) ?? null,
+    assignee: ticket.assignee_id ? profilesMap.get(ticket.assignee_id) ?? null : null,
+  })) as TicketWithRelations[];
+}
+
+export async function getTicketById(workspaceId: string, ticketId: string) {
+  const tickets = await getWorkspaceTicketsDetailed(workspaceId);
+  return tickets.find((ticket) => ticket.id === ticketId) ?? null;
+}
+
+export async function getTicketComments(ticketId: string, workspaceId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { data: comments, error } = await supabase
+    .from("ticket_comments")
+    .select("*")
+    .eq("ticket_id", ticketId)
+    .eq("workspace_id", workspaceId)
+    .eq("internal", false)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const authorIds = Array.from(
+    new Set((comments ?? []).map((comment) => comment.author_id).filter((id): id is string => Boolean(id))),
+  );
+
+  let profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
+
+  if (authorIds.length) {
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", authorIds);
+
+    if (profilesError) {
+      throw new Error(profilesError.message);
+    }
+
+    profilesMap = new Map(
+      (profiles ?? []).map((profile) => [
+        profile.id,
+        {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        },
+      ]),
+    );
+  }
+
+  return (comments ?? []).map((comment) => ({
+    ...comment,
+    author: profilesMap.get(comment.author_id) ?? null,
+  })) as TicketCommentWithAuthor[];
 }

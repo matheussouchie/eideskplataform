@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { getWorkspaceMembers, requireActiveWorkspace } from "@/lib/workspaces";
 
 export default async function TeamPage() {
@@ -5,41 +6,45 @@ export default async function TeamPage() {
   const members = await getWorkspaceMembers(activeMembership.workspace!.id);
 
   return (
-    <section className="stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Equipe</p>
-          <h1>Membros do workspace</h1>
-          <p className="muted">Visibilidade de papéis por tenant.</p>
-        </div>
+    <section className="space-y-6">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Equipe</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+          Membros do workspace
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">Visibilidade de papéis por tenant.</p>
       </header>
 
-      <section className="card stack">
+      <Card className="overflow-hidden p-5">
         {members.length ? (
-          <div className="table-shell">
-            <table>
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="text-slate-400">
                 <tr>
-                  <th>Usuário</th>
-                  <th>Papel</th>
-                  <th>Entrada</th>
+                  <th className="pb-4 font-medium">Usuário</th>
+                  <th className="pb-4 font-medium">Papel</th>
+                  <th className="pb-4 font-medium">Entrada</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {members.map((member) => (
                   <tr key={`${member.user_id}-${member.created_at}`}>
-                    <td>{member.profile?.full_name ?? member.user_id}</td>
-                    <td>{member.role}</td>
-                    <td>{new Date(member.created_at).toLocaleString("pt-BR")}</td>
+                    <td className="py-4 font-medium text-slate-900">
+                      {member.profile?.full_name ?? member.user_id}
+                    </td>
+                    <td className="py-4 capitalize text-slate-600">{member.role}</td>
+                    <td className="py-4 text-slate-500">
+                      {new Date(member.created_at).toLocaleString("pt-BR")}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="muted">Nenhum membro encontrado.</p>
+          <p className="text-sm text-slate-500">Nenhum membro encontrado.</p>
         )}
-      </section>
+      </Card>
     </section>
   );
 }
