@@ -52,6 +52,7 @@ export type Database = {
           domain_id: string;
           full_name: string | null;
           id: string;
+          is_active: boolean;
           team_id: string | null;
           updated_at: string;
         };
@@ -61,6 +62,7 @@ export type Database = {
           domain_id: string;
           full_name?: string | null;
           id: string;
+          is_active?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
@@ -70,6 +72,7 @@ export type Database = {
           domain_id?: string;
           full_name?: string | null;
           id?: string;
+          is_active?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
@@ -320,6 +323,51 @@ export type Database = {
           id?: string;
           internal?: boolean;
           ticket_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [];
+      };
+      ticket_attachments: {
+        Row: {
+          bucket_id: string;
+          comment_id: string;
+          content_type: string | null;
+          created_at: string;
+          domain_id: string;
+          file_name: string;
+          file_size: number;
+          id: string;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_by: string;
+          workspace_id: string;
+        };
+        Insert: {
+          bucket_id?: string;
+          comment_id: string;
+          content_type?: string | null;
+          created_at?: string;
+          domain_id: string;
+          file_name: string;
+          file_size: number;
+          id?: string;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_by: string;
+          workspace_id: string;
+        };
+        Update: {
+          bucket_id?: string;
+          comment_id?: string;
+          content_type?: string | null;
+          created_at?: string;
+          domain_id?: string;
+          file_name?: string;
+          file_size?: number;
+          id?: string;
+          storage_path?: string;
+          ticket_id?: string;
+          uploaded_by?: string;
           workspace_id?: string;
         };
         Relationships: [];

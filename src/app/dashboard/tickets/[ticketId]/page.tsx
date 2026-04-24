@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { assumeTicketAction, updateTicketStatusAction } from "@/app/actions/tickets";
+import {
+  assumeTicketAction,
+  postTicketMessageAction,
+  updateTicketStatusAction,
+} from "@/app/actions/tickets";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -25,12 +29,27 @@ function priorityVariant(priority: "low" | "medium" | "high" | "urgent") {
   }
 }
 
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  if (bytes >= 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+
+  return `${bytes} B`;
+}
+
 export default async function TicketDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ticketId: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { ticketId } = await params;
+  const query = await searchParams;
   const activeMembership = await requireActiveWorkspace();
   const ticket = await getTicketById(activeMembership.workspace!.id, ticketId);
 
@@ -38,9 +57,14 @@ export default async function TicketDetailsPage({
     notFound();
   }
 
-  const comments = await getTicketComments(ticket.id, activeMembership.workspace!.id);
-  const statuses = await getWorkspaceTicketStatuses(activeMembership.workspace!.id);
   const canManageWorkflow = activeMembership.role === "agent";
+  const canUseInternalMessages = activeMembership.role !== "requester";
+  const comments = await getTicketComments(ticket.id, activeMembership.workspace!.id, {
+    includeInternal: canUseInternalMessages,
+  });
+  const publicComments = comments.filter((comment) => !comment.internal);
+  const internalComments = comments.filter((comment) => comment.internal);
+  const statuses = await getWorkspaceTicketStatuses(activeMembership.workspace!.id);
 
   return (
     <section className="space-y-6">
@@ -75,8 +99,8 @@ export default async function TicketDetailsPage({
                   : ticket.status_info?.name === "Aguardando cliente"
                     ? "status-waiting"
                     : ticket.status_info?.name === "Novo"
-                    ? "status-open"
-                    : "status-resolved"
+                      ? "status-open"
+                      : "status-resolved"
               }
             >
               {ticket.status_info?.name ?? "Status"}
@@ -92,6 +116,7 @@ export default async function TicketDetailsPage({
                 className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
               >
                 <input type="hidden" name="ticketId" value={ticket.id} />
+                <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
                 <SubmitButton
                   className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
                   pendingLabel="Assumindo..."
@@ -106,6 +131,7 @@ export default async function TicketDetailsPage({
               className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
             >
               <input type="hidden" name="ticketId" value={ticket.id} />
+              <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
               <label className="grid gap-2">
                 <span className="text-sm font-medium text-slate-700">Atualizar status</span>
                 <select
@@ -131,6 +157,17 @@ export default async function TicketDetailsPage({
         ) : null}
       </div>
 
+      {query.error ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {query.error}
+        </p>
+      ) : null}
+      {query.success ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {query.success}
+        </p>
+      ) : null}
+
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.45fr]">
         <Card className="p-5">
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Contexto</h2>
@@ -146,6 +183,11 @@ export default async function TicketDetailsPage({
               <dd className="mt-1 font-semibold text-slate-900">
                 {ticket.assignee?.full_name ?? "Sem responsavel"}
               </dd>
+              {ticket.assignee ? (
+                <dd className="mt-1 text-xs text-slate-500">
+                  {ticket.assignee.is_active ? "Agente ativo" : "Agente inativo"}
+                </dd>
+              ) : null}
             </div>
             <div>
               <dt className="text-slate-500">Departamento</dt>
@@ -186,44 +228,175 @@ export default async function TicketDetailsPage({
           </dl>
         </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
+        <div className="space-y-5">
+          <Card className="p-5">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Historico publico</h2>
-              <p className="mt-1 text-sm text-slate-500">Mensagens reais associadas a este ticket.</p>
+              <h2 className="text-base font-semibold text-slate-900">Nova mensagem</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Envie atualizacoes publicas para o cliente ou notas internas para o time.
+              </p>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-              {comments.length} mensagens
-            </span>
-          </div>
 
-          <div className="mt-5 space-y-4">
-            {comments.length ? (
-              comments.map((comment) => (
-                <article key={comment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {comment.author?.full_name ?? "Usuario"}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {new Date(comment.created_at).toLocaleString("pt-BR")}
-                      </p>
-                    </div>
-                    <Badge variant="neutral">Publico</Badge>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                    {comment.body}
-                  </p>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
-                Ainda nao ha mensagens publicas neste ticket.
+            <form className="mt-5 grid gap-3" action={postTicketMessageAction}>
+              <input type="hidden" name="ticketId" value={ticket.id} />
+              <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
+
+              {canUseInternalMessages ? (
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-slate-700">Visibilidade</span>
+                  <select
+                    name="visibility"
+                    defaultValue="public"
+                    className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white"
+                  >
+                    <option value="public">Mensagem publica</option>
+                    <option value="internal">Mensagem interna</option>
+                  </select>
+                </label>
+              ) : (
+                <input type="hidden" name="visibility" value="public" />
+              )}
+
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-700">Mensagem</span>
+                <textarea
+                  name="body"
+                  rows={5}
+                  placeholder="Escreva uma atualizacao clara para o ticket."
+                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-700">Anexos</span>
+                <input
+                  type="file"
+                  name="attachments"
+                  multiple
+                  className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600"
+                />
+                <span className="text-xs text-slate-500">Cada arquivo pode ter ate 50MB.</span>
+              </label>
+
+              <SubmitButton
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                pendingLabel="Enviando..."
+              >
+                Enviar mensagem
+              </SubmitButton>
+            </form>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Historico publico</h2>
+                <p className="mt-1 text-sm text-slate-500">Mensagens visiveis para atendimento ao cliente.</p>
               </div>
-            )}
-          </div>
-        </Card>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                {publicComments.length} mensagens
+              </span>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {publicComments.length ? (
+                publicComments.map((comment) => (
+                  <article key={comment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {comment.author?.full_name ?? "Usuario"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(comment.created_at).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                      <Badge variant="neutral">Publico</Badge>
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      {comment.body}
+                    </p>
+                    {comment.attachments.length ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {comment.attachments.map((attachment) => (
+                          <a
+                            key={attachment.id}
+                            href={attachment.signed_url ?? "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700"
+                          >
+                            {attachment.file_name} · {formatFileSize(attachment.file_size)}
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
+                  Ainda nao ha mensagens publicas neste ticket.
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {canUseInternalMessages ? (
+            <Card className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900">Historico interno</h2>
+                  <p className="mt-1 text-sm text-slate-500">Notas privadas para operacao e acompanhamento do time.</p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                  {internalComments.length} mensagens
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {internalComments.length ? (
+                  internalComments.map((comment) => (
+                    <article key={comment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {comment.author?.full_name ?? "Usuario"}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(comment.created_at).toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                        <Badge variant="status-progress">Interno</Badge>
+                      </div>
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                        {comment.body}
+                      </p>
+                      {comment.attachments.length ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {comment.attachments.map((attachment) => (
+                            <a
+                              key={attachment.id}
+                              href={attachment.signed_url ?? "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700"
+                            >
+                              {attachment.file_name} · {formatFileSize(attachment.file_size)}
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+                    </article>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
+                    Ainda nao ha mensagens internas neste ticket.
+                  </div>
+                )}
+              </div>
+            </Card>
+          ) : null}
+        </div>
       </div>
     </section>
   );

@@ -28,12 +28,14 @@ export type WorkspaceMemberRow = {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    is_active: boolean;
     team_id: string | null;
   } | null;
 };
 
 export type TicketRow = Database["public"]["Tables"]["tickets"]["Row"];
 export type TicketCommentRow = Database["public"]["Tables"]["ticket_comments"]["Row"];
+export type TicketAttachmentRow = Database["public"]["Tables"]["ticket_attachments"]["Row"];
 export type DepartmentRow = Database["public"]["Tables"]["departments"]["Row"];
 export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
 export type TicketStatusRow = Database["public"]["Tables"]["ticket_statuses"]["Row"];
@@ -77,29 +79,43 @@ export type TicketWithRelations = TicketRow & {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    is_active: boolean;
     team_id: string | null;
   } | null;
   assignee: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    is_active: boolean;
     team_id: string | null;
   } | null;
 };
 
 export type TicketCommentWithAuthor = TicketCommentRow & {
+  attachments: TicketAttachmentWithUrl[];
   author: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    is_active: boolean;
     team_id: string | null;
   } | null;
+};
+
+export type TicketAttachmentWithUrl = TicketAttachmentRow & {
+  signed_url: string | null;
+};
+
+type SignedUrlLookupRow = {
+  path: string;
+  signedUrl: string | null;
 };
 
 type ProfileLookupRow = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  is_active: boolean;
   team_id: string | null;
 };
 
@@ -179,7 +195,7 @@ export async function getWorkspaceMembers(workspaceId: string) {
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, team_id")
+    .select("id, full_name, avatar_url, is_active, team_id")
     .in("id", userIds);
 
   if (profilesError) {
@@ -193,6 +209,7 @@ export async function getWorkspaceMembers(workspaceId: string) {
         id: profile.id,
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
+        is_active: profile.is_active,
         team_id: profile.team_id,
       },
     ]),
@@ -342,13 +359,19 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
 
   let profilesMap = new Map<
     string,
-    { id: string; full_name: string | null; avatar_url: string | null; team_id: string | null }
+    {
+      id: string;
+      full_name: string | null;
+      avatar_url: string | null;
+      is_active: boolean;
+      team_id: string | null;
+    }
   >();
 
   if (relatedUserIds.length) {
     const { data: profiles, error } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, team_id")
+      .select("id, full_name, avatar_url, is_active, team_id")
       .in("id", relatedUserIds);
 
     if (error) {
@@ -362,6 +385,7 @@ export async function getWorkspaceTicketsDetailed(workspaceId: string) {
           id: profile.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+          is_active: profile.is_active,
           team_id: profile.team_id,
         },
       ]),
@@ -442,15 +466,26 @@ export async function getTicketById(workspaceId: string, ticketId: string) {
   return tickets.find((ticket: TicketWithRelations) => ticket.id === ticketId) ?? null;
 }
 
-export async function getTicketComments(ticketId: string, workspaceId: string) {
+export async function getTicketComments(
+  ticketId: string,
+  workspaceId: string,
+  options?: {
+    includeInternal?: boolean;
+  },
+) {
   const supabase = await getSupabaseServerClient();
-  const { data: comments, error } = await supabase
+  let commentsQuery = supabase
     .from("ticket_comments")
     .select("*")
     .eq("ticket_id", ticketId)
     .eq("workspace_id", workspaceId)
-    .eq("internal", false)
     .order("created_at", { ascending: true });
+
+  if (!options?.includeInternal) {
+    commentsQuery = commentsQuery.eq("internal", false);
+  }
+
+  const { data: comments, error } = await commentsQuery;
 
   if (error) {
     throw new Error(error.message);
@@ -467,13 +502,19 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
 
   let profilesMap = new Map<
     string,
-    { id: string; full_name: string | null; avatar_url: string | null; team_id: string | null }
+    {
+      id: string;
+      full_name: string | null;
+      avatar_url: string | null;
+      is_active: boolean;
+      team_id: string | null;
+    }
   >();
 
   if (authorIds.length) {
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, team_id")
+      .select("id, full_name, avatar_url, is_active, team_id")
       .in("id", authorIds);
 
     if (profilesError) {
@@ -487,14 +528,63 @@ export async function getTicketComments(ticketId: string, workspaceId: string) {
           id: profile.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+          is_active: profile.is_active,
           team_id: profile.team_id,
         },
       ]),
     );
   }
 
+  const { data: attachments, error: attachmentsError } = await supabase
+    .from("ticket_attachments")
+    .select("*")
+    .eq("ticket_id", ticketId)
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: true });
+
+  if (attachmentsError) {
+    throw new Error(attachmentsError.message);
+  }
+
+  const attachmentRows = (attachments ?? []) as TicketAttachmentRow[];
+  let signedUrlsByPath = new Map<string, string | null>();
+
+  if (attachmentRows.length) {
+    const { data: signedUrls, error: signedUrlsError } = await supabase.storage
+      .from("ticket-attachments")
+      .createSignedUrls(
+        attachmentRows.map((attachment: TicketAttachmentRow) => attachment.storage_path),
+        60 * 60,
+      );
+
+    if (signedUrlsError) {
+      throw new Error(signedUrlsError.message);
+    }
+
+    signedUrlsByPath = new Map(
+      ((signedUrls ?? []) as SignedUrlLookupRow[]).map((item: SignedUrlLookupRow) => [
+        item.path,
+        item.signedUrl ?? null,
+      ]),
+    );
+  }
+
+  const attachmentsByCommentId = attachmentRows.reduce(
+    (map, attachment) => {
+      const current = map.get(attachment.comment_id) ?? [];
+      current.push({
+        ...attachment,
+        signed_url: signedUrlsByPath.get(attachment.storage_path) ?? null,
+      });
+      map.set(attachment.comment_id, current);
+      return map;
+    },
+    new Map<string, TicketAttachmentWithUrl[]>(),
+  );
+
   return commentRows.map((comment: TicketCommentRow) => ({
     ...comment,
+    attachments: attachmentsByCommentId.get(comment.id) ?? [],
     author: profilesMap.get(comment.author_id) ?? null,
   })) as TicketCommentWithAuthor[];
 }

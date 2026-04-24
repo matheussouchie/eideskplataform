@@ -35,9 +35,6 @@ begin
   delete from public.workspaces
   where id = workspace_uuid;
 
-  delete from public.domains
-  where id = domain_uuid;
-
   delete from public.profiles
   where id = any (
     array[
@@ -398,18 +395,19 @@ on conflict (id) do update
 set
   name = excluded.name;
 
-insert into public.profiles (id, full_name, avatar_url, domain_id, created_at, updated_at) values
-('00000000-0000-0000-0000-000000000001', 'Camila Duarte', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '20 days', timezone('utc', now()) - interval '1 day'),
-('00000000-0000-0000-0000-000000000002', 'Lucas Martins', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '19 days', timezone('utc', now()) - interval '2 days'),
-('00000000-0000-0000-0000-000000000003', 'Bianca Ribeiro', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '18 days', timezone('utc', now()) - interval '3 days'),
-('00000000-0000-0000-0000-000000000004', 'Rafael Gomes', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '17 days', timezone('utc', now()) - interval '4 days'),
-('00000000-0000-0000-0000-000000000005', 'Julia Ferraz', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '16 days', timezone('utc', now()) - interval '6 days'),
-('00000000-0000-0000-0000-000000000006', 'Marcos Leal', null, '13000000-0000-0000-0000-000000000001', timezone('utc', now()) - interval '15 days', timezone('utc', now()) - interval '5 days')
+insert into public.profiles (id, full_name, avatar_url, domain_id, is_active, created_at, updated_at) values
+('00000000-0000-0000-0000-000000000001', 'Camila Duarte', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '20 days', timezone('utc', now()) - interval '1 day'),
+('00000000-0000-0000-0000-000000000002', 'Lucas Martins', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '19 days', timezone('utc', now()) - interval '2 days'),
+('00000000-0000-0000-0000-000000000003', 'Bianca Ribeiro', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '18 days', timezone('utc', now()) - interval '3 days'),
+('00000000-0000-0000-0000-000000000004', 'Rafael Gomes', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '17 days', timezone('utc', now()) - interval '4 days'),
+('00000000-0000-0000-0000-000000000005', 'Julia Ferraz', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '16 days', timezone('utc', now()) - interval '6 days'),
+('00000000-0000-0000-0000-000000000006', 'Marcos Leal', null, '13000000-0000-0000-0000-000000000001', true, timezone('utc', now()) - interval '15 days', timezone('utc', now()) - interval '5 days')
 on conflict (id) do update
 set
   full_name = excluded.full_name,
   avatar_url = excluded.avatar_url,
   domain_id = excluded.domain_id,
+  is_active = excluded.is_active,
   updated_at = excluded.updated_at;
 
 insert into public.workspaces (id, domain_id, name, slug, created_by, created_at, updated_at) values

@@ -69,14 +69,19 @@ export function TicketCard({
 
             <div className="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
               <p className="font-medium text-slate-900">{requesterName}</p>
-            <p className="truncate">Responsavel: {responsibleName}</p>
-            <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-              {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
-            </p>
-            <p className="mt-1 truncate text-xs text-slate-500">
-              {ticket.product?.name ?? "Produto"} / {ticket.category?.name ?? "Categoria"}
-            </p>
-          </div>
+              <p className="truncate">Responsavel: {responsibleName}</p>
+              {ticket.assignee ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  {ticket.assignee.is_active ? "Agente ativo" : "Agente inativo"}
+                </p>
+              ) : null}
+              <p className="mt-2 truncate text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                {ticket.department?.name ?? "Departamento"} - {ticket.team?.name ?? "Time"}
+              </p>
+              <p className="mt-1 truncate text-xs text-slate-500">
+                {ticket.product?.name ?? "Produto"} / {ticket.category?.name ?? "Categoria"}
+              </p>
+            </div>
           </div>
         </Link>
 
@@ -96,6 +101,7 @@ export function TicketCard({
         {canAssume && !ticket.assigned_to ? (
           <form action={assumeTicketAction}>
             <input type="hidden" name="ticketId" value={ticket.id} />
+            <input type="hidden" name="redirectTo" value="/dashboard/tickets" />
             <button
               type="submit"
               className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"

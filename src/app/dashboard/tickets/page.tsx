@@ -1,6 +1,6 @@
 import { createTicketAction } from "@/app/actions/tickets";
-import { KanbanColumn } from "@/components/kanban/kanban-column";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { ProductTreeSelect } from "@/components/tickets/product-tree-select";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
@@ -82,24 +82,6 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
   });
 
   const canManageWorkflow = activeMembership.role === "agent";
-
-  const toneForStatus = (statusName: string) => {
-    const normalized = statusName.trim().toLowerCase();
-
-    if (normalized.includes("atendimento")) {
-      return "amber" as const;
-    }
-
-    if (normalized.includes("aguardando")) {
-      return "violet" as const;
-    }
-
-    if (normalized.includes("resolvido") || normalized.includes("fechado")) {
-      return "emerald" as const;
-    }
-
-    return "blue" as const;
-  };
 
   const columns = statuses.map((status) => ({
     status,
@@ -289,19 +271,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
         </Card>
       </section>
 
-      <section className="overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-4">
-          {columns.map((column) => (
-            <KanbanColumn
-              key={column.status.id}
-              title={column.status.name}
-              tone={toneForStatus(column.status.name)}
-              tickets={column.tickets}
-              canAssume={canManageWorkflow}
-            />
-          ))}
-        </div>
-      </section>
+      <KanbanBoard columns={columns} canManageWorkflow={canManageWorkflow} />
     </section>
   );
 }
