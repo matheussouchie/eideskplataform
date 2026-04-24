@@ -37,9 +37,20 @@ export async function createWorkspaceAction(formData: FormData) {
     redirect("/dashboard?error=Informe+um+slug+valido");
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("domain_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || !profile?.domain_id) {
+    redirect("/dashboard?error=Perfil+sem+dominio+valido");
+  }
+
   const { data: workspace, error: workspaceError } = await supabase
     .from("workspaces")
     .insert({
+      domain_id: profile.domain_id,
       name,
       slug,
       created_by: user.id,
@@ -52,6 +63,7 @@ export async function createWorkspaceAction(formData: FormData) {
   }
 
   const { error: membershipError } = await supabase.from("workspace_memberships").insert({
+    domain_id: profile.domain_id,
     workspace_id: workspace.id,
     user_id: user.id,
     role: "owner",

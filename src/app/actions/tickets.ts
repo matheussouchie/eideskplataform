@@ -40,7 +40,7 @@ export async function createTicketAction(formData: FormData) {
 
   const { data: team, error: teamError } = await supabase
     .from("teams")
-    .select("id, department_id")
+    .select("id, department_id, domain_id")
     .eq("id", teamId)
     .eq("workspace_id", activeMembership.workspace!.id)
     .maybeSingle();
@@ -56,6 +56,7 @@ export async function createTicketAction(formData: FormData) {
   const { data: ticket, error } = await supabase
     .from("tickets")
     .insert({
+      domain_id: team.domain_id,
       workspace_id: activeMembership.workspace!.id,
       department_id: departmentId,
       team_id: teamId,
@@ -72,6 +73,7 @@ export async function createTicketAction(formData: FormData) {
   }
 
   const { error: commentError } = await supabase.from("ticket_comments").insert({
+    domain_id: team.domain_id,
     workspace_id: activeMembership.workspace!.id,
     ticket_id: ticket.id,
     author_id: user.id,
@@ -129,6 +131,7 @@ export async function updateTicketStatusAction(formData: FormData) {
   }
 
   await supabase.from("ticket_comments").insert({
+    domain_id: activeMembership.workspace!.domain_id,
     workspace_id: activeMembership.workspace!.id,
     ticket_id: ticketId,
     author_id: user.id,

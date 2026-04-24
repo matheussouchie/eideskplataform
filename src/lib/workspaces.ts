@@ -12,6 +12,7 @@ export type MembershipRow = {
   workspace: {
     created_at: string;
     created_by: string;
+    domain_id: string;
     id: string;
     name: string;
     slug: string;

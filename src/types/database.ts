@@ -3,21 +3,42 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      domains: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       departments: {
         Row: {
           created_at: string;
+          domain_id: string;
           id: string;
           name: string;
           workspace_id: string;
         };
         Insert: {
           created_at?: string;
+          domain_id: string;
           id?: string;
           name: string;
           workspace_id: string;
         };
         Update: {
           created_at?: string;
+          domain_id?: string;
           id?: string;
           name?: string;
           workspace_id?: string;
@@ -28,6 +49,7 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           created_at: string;
+          domain_id: string;
           full_name: string | null;
           id: string;
           team_id: string | null;
@@ -36,6 +58,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
+          domain_id: string;
           full_name?: string | null;
           id: string;
           team_id?: string | null;
@@ -44,6 +67,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           created_at?: string;
+          domain_id?: string;
           full_name?: string | null;
           id?: string;
           team_id?: string | null;
@@ -55,6 +79,7 @@ export type Database = {
         Row: {
           created_at: string;
           department_id: string;
+          domain_id: string;
           id: string;
           name: string;
           workspace_id: string;
@@ -62,6 +87,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           department_id: string;
+          domain_id: string;
           id?: string;
           name: string;
           workspace_id: string;
@@ -69,6 +95,7 @@ export type Database = {
         Update: {
           created_at?: string;
           department_id?: string;
+          domain_id?: string;
           id?: string;
           name?: string;
           workspace_id?: string;
@@ -79,6 +106,7 @@ export type Database = {
         Row: {
           created_at: string;
           created_by: string;
+          domain_id: string;
           id: string;
           name: string;
           slug: string;
@@ -87,6 +115,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           created_by: string;
+          domain_id: string;
           id?: string;
           name: string;
           slug: string;
@@ -95,6 +124,7 @@ export type Database = {
         Update: {
           created_at?: string;
           created_by?: string;
+          domain_id?: string;
           id?: string;
           name?: string;
           slug?: string;
@@ -105,6 +135,7 @@ export type Database = {
       workspace_memberships: {
         Row: {
           created_at: string;
+          domain_id: string;
           id: number;
           role: Database["public"]["Enums"]["workspace_role"];
           user_id: string;
@@ -112,6 +143,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          domain_id: string;
           id?: number;
           role?: Database["public"]["Enums"]["workspace_role"];
           user_id: string;
@@ -119,6 +151,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          domain_id?: string;
           id?: number;
           role?: Database["public"]["Enums"]["workspace_role"];
           user_id?: string;
@@ -132,6 +165,7 @@ export type Database = {
           created_at: string;
           department_id: string;
           description: string;
+          domain_id: string;
           id: string;
           priority: Database["public"]["Enums"]["ticket_priority"];
           requester_id: string;
@@ -146,6 +180,7 @@ export type Database = {
           created_at?: string;
           department_id: string;
           description: string;
+          domain_id: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
           requester_id: string;
@@ -160,6 +195,7 @@ export type Database = {
           created_at?: string;
           department_id?: string;
           description?: string;
+          domain_id?: string;
           id?: string;
           priority?: Database["public"]["Enums"]["ticket_priority"];
           requester_id?: string;
@@ -176,6 +212,7 @@ export type Database = {
           author_id: string;
           body: string;
           created_at: string;
+          domain_id: string;
           id: string;
           internal: boolean;
           ticket_id: string;
@@ -185,6 +222,7 @@ export type Database = {
           author_id: string;
           body: string;
           created_at?: string;
+          domain_id: string;
           id?: string;
           internal?: boolean;
           ticket_id: string;
@@ -194,6 +232,7 @@ export type Database = {
           author_id?: string;
           body?: string;
           created_at?: string;
+          domain_id?: string;
           id?: string;
           internal?: boolean;
           ticket_id?: string;
@@ -206,9 +245,19 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      current_domain_id: {
+        Args: Record<PropertyKey, never>;
+        Returns: string | null;
+      };
       is_workspace_member: {
         Args: {
           workspace_uuid: string;
+        };
+        Returns: boolean;
+      };
+      is_domain_member: {
+        Args: {
+          domain_uuid: string;
         };
         Returns: boolean;
       };
