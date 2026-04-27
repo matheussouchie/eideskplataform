@@ -21,7 +21,7 @@ function sanitizeFileName(fileName: string) {
 }
 
 function redirectToProfile(message: string, type: "error" | "success") {
-  redirect(`/dashboard/profile?${type}=${encodeURIComponent(message)}`);
+  redirect(`/dashboard/profile?${type}=${encodeURIComponent(message)}&notice=${Date.now()}`);
 }
 
 export async function updateProfileAction(formData: FormData) {
@@ -127,7 +127,7 @@ export async function updateThemePreferenceAction(formData: FormData) {
   const redirectTo = readOptionalText(formData, "redirectTo") || "/dashboard";
 
   if (!["light", "dark"].includes(themePreference)) {
-    redirect(`${redirectTo}?error=${encodeURIComponent("Tema invalido")}`);
+    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Tema invalido")}&notice=${Date.now()}`);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -137,7 +137,7 @@ export async function updateThemePreferenceAction(formData: FormData) {
     .maybeSingle();
 
   if (profileError || !profile?.domain_id) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(profileError?.message ?? "Perfil invalido")}`);
+    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(profileError?.message ?? "Perfil invalido")}&notice=${Date.now()}`);
   }
 
   const { error } = await supabase
@@ -147,11 +147,11 @@ export async function updateThemePreferenceAction(formData: FormData) {
     .eq("domain_id", profile.domain_id);
 
   if (error) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(error.message)}&notice=${Date.now()}`);
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/settings");
-  redirect(redirectTo);
+  redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}success=${encodeURIComponent("Tema atualizado")}&notice=${Date.now()}`);
 }

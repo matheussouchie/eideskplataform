@@ -44,6 +44,10 @@ function readOptionalRedirectTarget(formData: FormData, name: string, fallback: 
   return typeof value === "string" && value.startsWith("/dashboard") ? value : fallback;
 }
 
+function withNotice(url: string) {
+  return `${url}${url.includes("?") ? "&" : "?"}notice=${Date.now()}`;
+}
+
 function revalidateTicketViews(ticketId?: string) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/tickets");
@@ -153,6 +157,81 @@ async function insertWorkflowComment(args: {
   }
 }
 
+async function createCommentWithAttachments(args: {
+  attachmentFiles: File[];
+  authorId: string;
+  body: string;
+  domainId: string;
+  internal: boolean;
+  ticketId: string;
+  workspaceId: string;
+}) {
+  const supabase = await getSupabaseServerClient();
+  const commentId = randomUUID();
+  const { error: commentError } = await supabase.from("ticket_comments").insert({
+    author_id: args.authorId,
+    body: args.body,
+    domain_id: args.domainId,
+    id: commentId,
+    internal: args.internal,
+    ticket_id: args.ticketId,
+    workspace_id: args.workspaceId,
+  });
+
+  if (commentError) {
+    throw new Error(commentError.message);
+  }
+
+  const uploadedPaths: string[] = [];
+
+  try {
+    for (const attachment of args.attachmentFiles) {
+      const attachmentId = randomUUID();
+      const storagePath = `${args.workspaceId}/${args.ticketId}/${commentId}/${attachmentId}-${sanitizeFileName(attachment.name)}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(ATTACHMENTS_BUCKET)
+        .upload(storagePath, attachment, {
+          cacheControl: "3600",
+          contentType: attachment.type || "application/octet-stream",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      uploadedPaths.push(storagePath);
+
+      const { error: attachmentError } = await supabase.from("ticket_attachments").insert({
+        bucket_id: ATTACHMENTS_BUCKET,
+        comment_id: commentId,
+        content_type: attachment.type || "application/octet-stream",
+        domain_id: args.domainId,
+        file_name: attachment.name,
+        file_size: attachment.size,
+        id: attachmentId,
+        storage_path: storagePath,
+        ticket_id: args.ticketId,
+        uploaded_by: args.authorId,
+        workspace_id: args.workspaceId,
+      });
+
+      if (attachmentError) {
+        throw new Error(attachmentError.message);
+      }
+    }
+  } catch (error) {
+    if (uploadedPaths.length) {
+      await supabase.storage.from(ATTACHMENTS_BUCKET).remove(uploadedPaths);
+    }
+
+    await supabase.from("ticket_attachments").delete().eq("comment_id", commentId);
+    await supabase.from("ticket_comments").delete().eq("id", commentId);
+    throw error;
+  }
+}
+
 export async function createTicketAction(formData: FormData) {
   const user = await requireUser();
   const activeMembership = await requireActiveWorkspace();
@@ -167,6 +246,9 @@ export async function createTicketAction(formData: FormData) {
   const teamId = readRequired(formData, "teamId");
   const productId = readRequired(formData, "productId");
   const categoryId = readRequired(formData, "categoryId");
+  const attachmentFiles = formData
+    .getAll("attachments")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
   const allowedPriorities: Database["public"]["Enums"]["ticket_priority"][] = [
     "low",
@@ -176,7 +258,13 @@ export async function createTicketAction(formData: FormData) {
   ];
 
   if (!allowedPriorities.includes(priority)) {
-    redirect(`${redirectTo}?error=Prioridade+invalida`);
+    redirect(withNotice(`${redirectTo}?error=Prioridade+invalida`));
+  }
+
+  for (const attachment of attachmentFiles) {
+    if (attachment.size > MAX_ATTACHMENT_SIZE) {
+      redirect(withNotice(`${redirectTo}?error=Cada+anexo+deve+ter+no+maximo+50MB`));
+    }
   }
 
   const { data: team, error: teamError } = await supabase
@@ -187,11 +275,11 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (teamError || !team) {
-    redirect(`${redirectTo}?error=Time+invalido`);
+    redirect(withNotice(`${redirectTo}?error=Time+invalido`));
   }
 
   if (team.department_id !== departmentId) {
-    redirect(`${redirectTo}?error=Time+nao+pertence+ao+departamento+selecionado`);
+    redirect(withNotice(`${redirectTo}?error=Time+nao+pertence+ao+departamento+selecionado`));
   }
 
   const { data: product, error: productError } = await supabase
@@ -202,7 +290,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (productError || !product) {
-    redirect(`${redirectTo}?error=Produto+invalido`);
+    redirect(withNotice(`${redirectTo}?error=Produto+invalido`));
   }
 
   const { data: category, error: categoryError } = await supabase
@@ -213,7 +301,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (categoryError || !category) {
-    redirect(`${redirectTo}?error=Categoria+invalida`);
+    redirect(withNotice(`${redirectTo}?error=Categoria+invalida`));
   }
 
   const { data: initialStatus, error: initialStatusError } = await supabase
@@ -225,7 +313,7 @@ export async function createTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (initialStatusError || !initialStatus) {
-    redirect(`${redirectTo}?error=Status+inicial+nao+configurado`);
+    redirect(withNotice(`${redirectTo}?error=Status+inicial+nao+configurado`));
   }
 
   const autoAssignedTo = await resolveAutoAssignee({
@@ -253,7 +341,7 @@ export async function createTicketAction(formData: FormData) {
     .single();
 
   if (error || !ticket) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(error?.message ?? "Falha ao criar ticket")}`);
+    redirect(withNotice(`${redirectTo}?error=${encodeURIComponent(error?.message ?? "Falha ao criar ticket")}`));
   }
 
   try {
@@ -276,8 +364,20 @@ export async function createTicketAction(formData: FormData) {
         workspaceId: activeMembership.workspace!.id,
       });
     }
+
+    if (attachmentFiles.length) {
+      await createCommentWithAttachments({
+        attachmentFiles,
+        authorId: user.id,
+        body: "Anexos enviados na abertura do ticket.",
+        domainId: team.domain_id,
+        internal: false,
+        ticketId: ticket.id,
+        workspaceId: activeMembership.workspace!.id,
+      });
+    }
   } catch (commentError) {
-    redirect(`${redirectTo}?error=${encodeURIComponent((commentError as Error).message)}`);
+    redirect(withNotice(`${redirectTo}?error=${encodeURIComponent((commentError as Error).message)}`));
   }
 
   await supabase
@@ -288,7 +388,7 @@ export async function createTicketAction(formData: FormData) {
 
   revalidateTicketViews(ticket.id);
   revalidatePath("/dashboard/tickets/new");
-  redirect(`${successRedirectTo}${successRedirectTo.includes("?") ? "&" : "?"}success=Ticket+criado`);
+  redirect(withNotice(`${successRedirectTo}${successRedirectTo.includes("?") ? "&" : "?"}success=Ticket+criado`));
 }
 
 async function updateTicketStatusCore(args: {
@@ -379,7 +479,7 @@ export async function updateTicketStatusAction(formData: FormData) {
   const redirectTo = readRedirectTarget(formData, `/dashboard/tickets/${ticketId}`);
 
   if (!WORKFLOW_ROLES.includes(activeMembership.role)) {
-    redirect(`${redirectTo}?error=Sem+permissao+para+alterar+status`);
+    redirect(withNotice(`${redirectTo}?error=Sem+permissao+para+alterar+status`));
   }
 
   const result = await updateTicketStatusCore({
@@ -390,10 +490,10 @@ export async function updateTicketStatusAction(formData: FormData) {
   });
 
   if (!result.success) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(result.error)}`);
+    redirect(withNotice(`${redirectTo}?error=${encodeURIComponent(result.error)}`));
   }
 
-  redirect(`${redirectTo}?success=Status+atualizado`);
+  redirect(withNotice(`${redirectTo}?success=Status+atualizado`));
 }
 
 export async function assumeTicketAction(formData: FormData) {
@@ -404,7 +504,7 @@ export async function assumeTicketAction(formData: FormData) {
   const redirectTo = readRedirectTarget(formData, "/dashboard/tickets");
 
   if (!WORKFLOW_ROLES.includes(activeMembership.role)) {
-    redirect(`${redirectTo}?error=Sem+permissao+para+assumir+ticket`);
+    redirect(withNotice(`${redirectTo}?error=Sem+permissao+para+assumir+ticket`));
   }
 
   const { data: ticket, error: lookupError } = await supabase
@@ -415,17 +515,17 @@ export async function assumeTicketAction(formData: FormData) {
     .maybeSingle();
 
   if (lookupError || !ticket) {
-    redirect(`${redirectTo}?error=Ticket+nao+encontrado`);
+    redirect(withNotice(`${redirectTo}?error=Ticket+nao+encontrado`));
   }
 
   if (ticket.assigned_to) {
-    redirect(`${redirectTo}?error=Ticket+ja+possui+responsavel`);
+    redirect(withNotice(`${redirectTo}?error=Ticket+ja+possui+responsavel`));
   }
 
   const { error } = await supabase.from("tickets").update({ assigned_to: user.id }).eq("id", ticketId);
 
   if (error) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    redirect(withNotice(`${redirectTo}?error=${encodeURIComponent(error.message)}`));
   }
 
   await insertWorkflowComment({
@@ -438,7 +538,7 @@ export async function assumeTicketAction(formData: FormData) {
   });
 
   revalidateTicketViews(ticketId);
-  redirect(`${redirectTo}?success=Ticket+assumido`);
+  redirect(withNotice(`${redirectTo}?success=Ticket+assumido`));
 }
 
 export async function postTicketMessageAction(formData: FormData) {
@@ -457,16 +557,16 @@ export async function postTicketMessageAction(formData: FormData) {
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
   if (!body && !attachmentFiles.length) {
-    redirect(`${redirectTo}?error=Informe+uma+mensagem+ou+adicione+um+anexo`);
+    redirect(withNotice(`${redirectTo}?error=Informe+uma+mensagem+ou+adicione+um+anexo`));
   }
 
   if (internal && activeMembership.role === "requester") {
-    redirect(`${redirectTo}?error=Solicitantes+nao+podem+enviar+mensagens+internas`);
+    redirect(withNotice(`${redirectTo}?error=Solicitantes+nao+podem+enviar+mensagens+internas`));
   }
 
   for (const attachment of attachmentFiles) {
     if (attachment.size > MAX_ATTACHMENT_SIZE) {
-      redirect(`${redirectTo}?error=Cada+anexo+deve+ter+no+maximo+50MB`);
+      redirect(withNotice(`${redirectTo}?error=Cada+anexo+deve+ter+no+maximo+50MB`));
     }
   }
 
@@ -478,73 +578,23 @@ export async function postTicketMessageAction(formData: FormData) {
     .maybeSingle();
 
   if (ticketError || !ticket) {
-    redirect(`${redirectTo}?error=Ticket+nao+encontrado`);
+    redirect(withNotice(`${redirectTo}?error=Ticket+nao+encontrado`));
   }
-
-  const commentId = randomUUID();
-  const { error: commentError } = await supabase.from("ticket_comments").insert({
-    author_id: user.id,
-    body: body || (internal ? "Anexo interno enviado." : "Anexo enviado."),
-    domain_id: ticket.domain_id,
-    id: commentId,
-    internal,
-    ticket_id: ticket.id,
-    workspace_id: ticket.workspace_id,
-  });
-
-  if (commentError) {
-    redirect(`${redirectTo}?error=${encodeURIComponent(commentError.message)}`);
-  }
-
-  const uploadedPaths: string[] = [];
 
   try {
-    for (const attachment of attachmentFiles) {
-      const attachmentId = randomUUID();
-      const storagePath = `${ticket.workspace_id}/${ticket.id}/${commentId}/${attachmentId}-${sanitizeFileName(attachment.name)}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(ATTACHMENTS_BUCKET)
-        .upload(storagePath, attachment, {
-          cacheControl: "3600",
-          contentType: attachment.type || "application/octet-stream",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        throw new Error(uploadError.message);
-      }
-
-      uploadedPaths.push(storagePath);
-
-      const { error: attachmentError } = await supabase.from("ticket_attachments").insert({
-        bucket_id: ATTACHMENTS_BUCKET,
-        comment_id: commentId,
-        content_type: attachment.type || "application/octet-stream",
-        domain_id: ticket.domain_id,
-        file_name: attachment.name,
-        file_size: attachment.size,
-        id: attachmentId,
-        storage_path: storagePath,
-        ticket_id: ticket.id,
-        uploaded_by: user.id,
-        workspace_id: ticket.workspace_id,
-      });
-
-      if (attachmentError) {
-        throw new Error(attachmentError.message);
-      }
-    }
+    await createCommentWithAttachments({
+      attachmentFiles,
+      authorId: user.id,
+      body: body || (internal ? "Anexo interno enviado." : "Anexo enviado."),
+      domainId: ticket.domain_id,
+      internal,
+      ticketId: ticket.id,
+      workspaceId: ticket.workspace_id,
+    });
   } catch (error) {
-    if (uploadedPaths.length) {
-      await supabase.storage.from(ATTACHMENTS_BUCKET).remove(uploadedPaths);
-    }
-
-    await supabase.from("ticket_attachments").delete().eq("comment_id", commentId);
-    await supabase.from("ticket_comments").delete().eq("id", commentId);
-    redirect(`${redirectTo}?error=${encodeURIComponent((error as Error).message)}`);
+    redirect(withNotice(`${redirectTo}?error=${encodeURIComponent((error as Error).message)}`));
   }
 
   revalidateTicketViews(ticket.id);
-  redirect(`${redirectTo}?success=Mensagem+enviada`);
+  redirect(withNotice(`${redirectTo}?success=Mensagem+enviada`));
 }

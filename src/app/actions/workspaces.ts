@@ -25,6 +25,10 @@ function readRequired(formData: FormData, name: string) {
   return value.trim();
 }
 
+function withNotice(url: string) {
+  return `${url}${url.includes("?") ? "&" : "?"}notice=${Date.now()}`;
+}
+
 export async function createWorkspaceAction(formData: FormData) {
   const user = await requireUser();
   const supabase = await getSupabaseServerClient();
@@ -34,7 +38,7 @@ export async function createWorkspaceAction(formData: FormData) {
   const slug = toSlug(readRequired(formData, "slug"));
 
   if (!slug) {
-    redirect("/dashboard?error=Informe+um+slug+valido");
+    redirect(withNotice("/dashboard?error=Informe+um+slug+valido"));
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -44,7 +48,7 @@ export async function createWorkspaceAction(formData: FormData) {
     .maybeSingle();
 
   if (profileError || !profile?.domain_id) {
-    redirect("/dashboard?error=Perfil+sem+dominio+valido");
+    redirect(withNotice("/dashboard?error=Perfil+sem+dominio+valido"));
   }
 
   const { data: workspace, error: workspaceError } = await supabase
@@ -59,7 +63,7 @@ export async function createWorkspaceAction(formData: FormData) {
     .single();
 
   if (workspaceError || !workspace) {
-    redirect(`/dashboard?error=${encodeURIComponent(workspaceError?.message ?? "Falha ao criar workspace")}`);
+    redirect(withNotice(`/dashboard?error=${encodeURIComponent(workspaceError?.message ?? "Falha ao criar workspace")}`));
   }
 
   const { error: membershipError } = await supabase.from("workspace_memberships").insert({
@@ -70,7 +74,7 @@ export async function createWorkspaceAction(formData: FormData) {
   });
 
   if (membershipError) {
-    redirect(`/dashboard?error=${encodeURIComponent(membershipError.message)}`);
+    redirect(withNotice(`/dashboard?error=${encodeURIComponent(membershipError.message)}`));
   }
 
   cookieStore.set(ACTIVE_WORKSPACE_COOKIE, workspace.id, {
@@ -81,7 +85,7 @@ export async function createWorkspaceAction(formData: FormData) {
   });
 
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+  redirect(withNotice("/dashboard?success=Workspace+criado"));
 }
 
 export async function switchWorkspaceAction(formData: FormData) {
@@ -98,7 +102,7 @@ export async function switchWorkspaceAction(formData: FormData) {
     .maybeSingle();
 
   if (error || !data) {
-    redirect("/dashboard?error=Workspace+invalido");
+    redirect(withNotice("/dashboard?error=Workspace+invalido"));
   }
 
   cookieStore.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, {
@@ -109,7 +113,7 @@ export async function switchWorkspaceAction(formData: FormData) {
   });
 
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+  redirect(withNotice("/dashboard?success=Workspace+alterado"));
 }
 
 export async function updateWorkspaceAction(formData: FormData) {
@@ -128,7 +132,7 @@ export async function updateWorkspaceAction(formData: FormData) {
     .maybeSingle();
 
   if (membershipError || !membership || !["owner", "admin"].includes(membership.role)) {
-    redirect("/dashboard/settings?error=Sem+permissao");
+    redirect(withNotice("/dashboard/settings?error=Sem+permissao"));
   }
 
   const { error } = await supabase
@@ -137,10 +141,10 @@ export async function updateWorkspaceAction(formData: FormData) {
     .eq("id", workspaceId);
 
   if (error) {
-    redirect(`/dashboard/settings?error=${encodeURIComponent(error.message)}`);
+    redirect(withNotice(`/dashboard/settings?error=${encodeURIComponent(error.message)}`));
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/settings");
-  redirect("/dashboard/settings?success=Workspace+atualizado");
+  redirect(withNotice("/dashboard/settings?success=Workspace+atualizado"));
 }

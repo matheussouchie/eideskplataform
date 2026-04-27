@@ -10,7 +10,7 @@ import { getSupabaseStatelessClient } from "@/lib/supabase/stateless";
 const SETTINGS_ROUTE = "/dashboard/settings";
 
 function redirectToSettings(panel: string, message: string, type: "error" | "success") {
-  redirect(`${SETTINGS_ROUTE}?panel=${panel}&${type}=${encodeURIComponent(message)}`);
+  redirect(`${SETTINGS_ROUTE}?panel=${panel}&${type}=${encodeURIComponent(message)}&notice=${Date.now()}`);
 }
 
 function readRequiredText(formData: FormData, name: string, options?: { maxLength?: number; minLength?: number }) {

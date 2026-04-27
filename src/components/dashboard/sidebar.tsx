@@ -218,20 +218,7 @@ export function Sidebar({
           </div>
         )}
       </div>
-
-      <div className="mt-auto rounded-3xl border border-sky-500/20 bg-sky-500/5 p-4">
-        {!collapsed ? (
-          <>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Workspace ativo</p>
-            <p className="mt-3 text-lg font-semibold text-white">{activeWorkspaceName ?? "Nao definido"}</p>
-            <p className="mt-1 text-sm text-slate-400">{activeRole ?? "Sem papel"}</p>
-          </>
-        ) : (
-          <p className="text-center text-xs font-semibold text-white">{(activeRole ?? "-").slice(0, 1).toUpperCase()}</p>
-        )}
-      </div>
-
-      <div className="mt-6 pt-2">
+      <div className="mt-auto pt-6">
         <LogoutButton />
       </div>
     </aside>

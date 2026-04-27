@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { requireUser } from "@/lib/auth";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveWorkspace } from "@/lib/workspaces";
@@ -30,10 +28,9 @@ export async function saveTicketDraftAction(payload: DraftPayload) {
     await supabase
       .from("ticket_drafts")
       .delete()
-      .eq("user_id", user.id)
-      .eq("workspace_id", activeMembership.workspace!.id);
+    .eq("user_id", user.id)
+    .eq("workspace_id", activeMembership.workspace!.id);
 
-    revalidatePath("/dashboard/tickets/new");
     return { success: true } as const;
   }
 
@@ -57,7 +54,6 @@ export async function saveTicketDraftAction(payload: DraftPayload) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/dashboard/tickets/new");
   return { success: true } as const;
 }
 
@@ -76,6 +72,5 @@ export async function clearTicketDraftAction() {
     throw new Error(error.message);
   }
 
-  revalidatePath("/dashboard/tickets/new");
   return { success: true } as const;
 }

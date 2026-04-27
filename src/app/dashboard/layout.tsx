@@ -1,5 +1,6 @@
 import { DashboardHeader } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { ThemeController } from "@/components/theme/theme-controller";
 import { requireUser } from "@/lib/auth";
 import { getCurrentUserProfile, getWorkspaceContext } from "@/lib/workspaces";
 
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
   return (
     <div className={profile.theme_preference === "dark" ? "dark" : undefined}>
       <div className="min-h-screen bg-[#f5f7fb] text-slate-900 dark:bg-[#020817] dark:text-slate-100">
+        <ThemeController themePreference={profile.theme_preference} />
         <Sidebar
           activeRole={workspaceContext.activeMembership?.role}
           activeWorkspaceId={workspaceContext.activeMembership?.workspace?.id}

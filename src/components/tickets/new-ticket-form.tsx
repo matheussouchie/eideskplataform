@@ -144,7 +144,7 @@ export function NewTicketForm({
         productId: snapshot.productId || null,
         title: snapshot.title,
       });
-    }, 500);
+    }, 1200);
 
     return () => window.clearTimeout(timeoutId);
   }, [categoryId, description, initialSnapshot, priority, productId, storageKey, title]);
@@ -235,6 +235,19 @@ export function NewTicketForm({
               O rascunho fica salvo automaticamente neste navegador e no seu workspace.
             </span>
           </div>
+
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Imagens e anexos</span>
+            <input
+              type="file"
+              name="attachments"
+              multiple
+              className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            />
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Cada arquivo pode ter ate 50MB e sera anexado junto com a abertura do ticket.
+            </span>
+          </label>
         </section>
 
         <section className="space-y-5">
