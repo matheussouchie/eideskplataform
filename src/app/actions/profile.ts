@@ -55,11 +55,11 @@ export async function updateProfileAction(formData: FormData) {
   const nextFullName = fullName || currentProfile.full_name || user.email || "Usuario";
   const nextThemePreference = themePreference || currentProfile.theme_preference || "light";
   let nextAvatarPath = currentProfile?.avatar_url ?? null;
-  let uploadWarning: string | null = null;
+  let warningMessage: string | null = null;
 
   if (avatar instanceof File && avatar.size > 0) {
     if (avatar.size > MAX_AVATAR_SIZE) {
-      uploadWarning = "A foto nao foi enviada porque excede 50MB.";
+      warningMessage = "A foto nao foi enviada porque excede 50MB.";
     } else {
       const extension = avatar.name.includes(".") ? avatar.name.split(".").pop() : "bin";
       const storagePath = `${user.id}/avatar-${randomUUID()}-${sanitizeFileName(`profile.${extension}`)}`;
@@ -72,7 +72,7 @@ export async function updateProfileAction(formData: FormData) {
         });
 
       if (uploadError) {
-        uploadWarning = `A foto nao foi enviada: ${uploadError.message}`;
+        warningMessage = `A foto nao foi enviada: ${uploadError.message}`;
       } else {
         nextAvatarPath = storagePath;
 
@@ -108,7 +108,18 @@ export async function updateProfileAction(formData: FormData) {
     const { error: authError } = await supabase.auth.updateUser(authPayload);
 
     if (authError) {
-      redirectToProfile(authError.message, "error");
+      const normalizedMessage = authError.message.toLowerCase();
+      const isSamePasswordError =
+        normalizedMessage.includes("password should be different") ||
+        normalizedMessage.includes("new password should be different");
+
+      if (authPayload.password && isSamePasswordError) {
+        warningMessage =
+          warningMessage ??
+          "Os demais dados foram salvos. A senha nao foi alterada porque o Supabase exige uma senha diferente da atual.";
+      } else {
+        redirectToProfile(authError.message, "error");
+      }
     }
   }
 
@@ -129,7 +140,7 @@ export async function updateProfileAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/tickets");
-  redirectToProfile(uploadWarning ?? "Perfil atualizado com sucesso", "success");
+  redirectToProfile(warningMessage ?? "Perfil atualizado com sucesso", "success");
 }
 
 export async function persistThemePreferenceAction(themePreference: string) {

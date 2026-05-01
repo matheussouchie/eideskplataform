@@ -23,7 +23,7 @@ export function DashboardHeader({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">
-            {workspaceName ? `Workspace · ${workspaceName}` : "EiDesk"}
+            {workspaceName ? `Workspace - ${workspaceName}` : "EiDesk"}
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
             Central operacional
@@ -34,11 +34,11 @@ export function DashboardHeader({
           <form action="/dashboard/tickets" className="w-full sm:w-[360px]">
             <label className="relative block">
               <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-                ⌕
+                +
               </span>
               <input
                 name="query"
-                placeholder="Buscar tickets por título, cliente ou prioridade"
+                placeholder="Buscar tickets por titulo, cliente ou prioridade"
                 className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-sky-500 dark:focus:bg-slate-950"
               />
             </label>

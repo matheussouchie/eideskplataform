@@ -46,7 +46,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             <Avatar
               name={profile.full_name ?? user.email ?? "Usuario"}
               src={profile.avatar_signed_url}
-              className="h-24 w-24 rounded-[28px] text-2xl"
+              className="h-24 w-24 rounded-full text-2xl"
             />
             <div>
               <p className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -99,6 +99,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                   name="password"
                   type="password"
                   placeholder="Deixe em branco para manter"
+                  autoComplete="new-password"
+                  defaultValue=""
+                  data-1p-ignore
+                  data-lpignore="true"
                   className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
               </label>

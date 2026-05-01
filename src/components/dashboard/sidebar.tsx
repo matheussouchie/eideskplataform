@@ -202,7 +202,14 @@ export function Sidebar({
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
               )}
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-sm dark:bg-slate-900/30">
+              <span
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-xl text-sm",
+                  active
+                    ? "bg-white/12 text-white dark:bg-slate-900 dark:text-slate-950"
+                    : "bg-slate-100 text-current dark:bg-slate-900/30 dark:text-current",
+                )}
+              >
                 {link.icon}
               </span>
               {!collapsed ? link.label : null}
