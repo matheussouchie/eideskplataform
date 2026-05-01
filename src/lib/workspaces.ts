@@ -712,6 +712,12 @@ export async function getCurrentUserProfile() {
 
   const avatarSignedUrl = await resolveAvatarUrl(profile.avatar_url);
 
+  console.info("[avatar-debug] current-profile", {
+    avatar_signed_url: avatarSignedUrl,
+    avatar_url: profile.avatar_url,
+    user_id: user.id,
+  });
+
   return {
     ...profile,
     avatar_signed_url: avatarSignedUrl,

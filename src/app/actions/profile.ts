@@ -83,12 +83,18 @@ export async function updateProfileAction(formData: FormData) {
     }
   }
   const authPayload: {
-    data: { full_name: string };
+    data: {
+      avatar_url?: string | null;
+      full_name: string;
+      theme_preference?: string;
+    };
     email?: string;
     password?: string;
   } = {
     data: {
+      avatar_url: nextAvatarPath,
       full_name: nextFullName,
+      theme_preference: nextThemePreference,
     },
   };
 
@@ -103,7 +109,13 @@ export async function updateProfileAction(formData: FormData) {
     authPayload.password = password;
   }
 
-  const shouldUpdateAuth = Boolean(authPayload.email || authPayload.password || nextFullName !== (user.user_metadata?.full_name ?? user.email));
+  const shouldUpdateAuth = Boolean(
+    authPayload.email ||
+      authPayload.password ||
+      nextFullName !== (user.user_metadata?.full_name ?? user.email) ||
+      nextAvatarPath !== (typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null) ||
+      nextThemePreference !== (typeof user.user_metadata?.theme_preference === "string" ? user.user_metadata.theme_preference : "light"),
+  );
   if (shouldUpdateAuth) {
     const { error: authError } = await supabase.auth.updateUser(authPayload);
 
@@ -123,6 +135,13 @@ export async function updateProfileAction(formData: FormData) {
     }
   }
 
+  console.info("[avatar-debug] profile-save", {
+    auth_metadata_avatar_url:
+      typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null,
+    avatar_url: nextAvatarPath,
+    user_id: user.id,
+  });
+
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
@@ -136,6 +155,11 @@ export async function updateProfileAction(formData: FormData) {
   if (profileError) {
     redirectToProfile(profileError.message, "error");
   }
+
+  console.info("[avatar-debug] profile-db-persisted", {
+    avatar_url: nextAvatarPath,
+    user_id: user.id,
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");

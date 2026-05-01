@@ -102,14 +102,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       <Card className="border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950" id="workspace">
         <div className="mb-5">
-          <h2 className="text-lg font-semibold text-slate-900">Workspace</h2>
-          <p className="mt-1 text-sm text-slate-500">Administracao base do tenant atual.</p>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Workspace</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Administracao base do tenant atual.</p>
         </div>
 
         <form className="grid gap-4" action={updateWorkspaceAction}>
           <input type="hidden" name="workspaceId" value={activeMembership.workspace!.id} />
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-700">Nome</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome</span>
             <input
               className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
               name="name"
@@ -119,7 +119,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-700">Slug</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Slug</span>
             <input
               className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
               name="slug"
@@ -143,10 +143,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       {canEdit ? (
         <>
-          <Card className="border-sky-200 bg-sky-50/60 p-5 dark:border-sky-500/20 dark:bg-sky-500/8" id="agents">
+          <Card className="border-sky-200 bg-sky-100 p-5 dark:border-sky-500/20 dark:bg-sky-900/30" id="agents">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Agentes</h2>
-              <p className="mt-1 text-sm text-slate-500">Criacao, edicao e arquivamento de agentes do workspace.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Agentes</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Criacao, edicao e arquivamento de agentes do workspace.</p>
             </div>
 
             <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-4" action={createAgentAction}>
@@ -246,10 +246,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-emerald-200 bg-emerald-50/60 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/8" id="products">
+          <Card className="border-green-200 bg-green-100 p-5 dark:border-green-500/20 dark:bg-green-900/30" id="products">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Produtos</h2>
-              <p className="mt-1 text-sm text-slate-500">Estrutura hierarquica de classificacao do ticket.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Produtos</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Estrutura hierarquica de classificacao do ticket.</p>
             </div>
 
             <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_1fr_auto]" action={createProductAction}>
@@ -320,10 +320,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-violet-200 bg-violet-50/60 p-5 dark:border-violet-500/20 dark:bg-violet-500/8" id="categories">
+          <Card className="border-purple-200 bg-purple-100 p-5 dark:border-purple-500/20 dark:bg-purple-900/30" id="categories">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Categorias</h2>
-              <p className="mt-1 text-sm text-slate-500">Classificacao plana para o contexto do ticket.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Categorias</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Classificacao plana para o contexto do ticket.</p>
             </div>
 
             <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_auto]" action={createCategoryAction}>
@@ -366,10 +366,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50/60 p-5 dark:border-blue-500/20 dark:bg-blue-500/8" id="departments">
+          <Card className="border-blue-200 bg-blue-100 p-5 dark:border-blue-500/20 dark:bg-blue-900/30" id="departments">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Departamentos</h2>
-              <p className="mt-1 text-sm text-slate-500">Estrutura macro do atendimento.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Departamentos</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Estrutura macro do atendimento.</p>
             </div>
 
             <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_auto]" action={createDepartmentAction}>
@@ -413,10 +413,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-amber-200 bg-amber-50/60 p-5 dark:border-amber-500/20 dark:bg-amber-500/8" id="teams">
+          <Card className="border-yellow-200 bg-yellow-100 p-5 dark:border-yellow-500/20 dark:bg-yellow-900/30" id="teams">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Times</h2>
-              <p className="mt-1 text-sm text-slate-500">Unidades operacionais vinculadas a departamentos.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Times</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Unidades operacionais vinculadas a departamentos.</p>
             </div>
 
             <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_1fr_auto]" action={createTeamAction}>
@@ -484,8 +484,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
           <Card className="border-sky-200 bg-sky-50/55 p-5 dark:border-sky-500/20 dark:bg-sky-500/5" id="governanca">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-slate-900">Governanca de tickets</h2>
-              <p className="mt-1 text-sm text-slate-500">Acesse a triagem global para corrigir tickets desalinhados.</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Governanca de tickets</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Acesse a triagem global para corrigir tickets desalinhados.</p>
             </div>
 
             <a

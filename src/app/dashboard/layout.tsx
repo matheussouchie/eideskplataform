@@ -20,6 +20,12 @@ export default async function DashboardLayout({
     user.email ||
     "Usuario";
 
+  console.info("[avatar-debug] dashboard-navbar", {
+    avatar_signed_url: profile.avatar_signed_url,
+    avatar_url: profile.avatar_url,
+    user_id: user.id,
+  });
+
   return (
     <ThemeProvider initialTheme={profile.theme_preference}>
       <div className="min-h-screen bg-[#f5f7fb] text-slate-900 dark:bg-[#020817] dark:text-slate-100">

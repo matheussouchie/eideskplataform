@@ -20,13 +20,61 @@ export async function signInAction(formData: FormData) {
   const password = readField(formData, "password");
   const next = formData.get("next");
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
     redirect(`/auth/sign-in?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (data.user) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("avatar_url, full_name, theme_preference")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    console.info("[avatar-debug] sign-in", {
+      auth_metadata_avatar_url:
+        typeof data.user.user_metadata?.avatar_url === "string" ? data.user.user_metadata.avatar_url : null,
+      profile_avatar_url: profile?.avatar_url ?? null,
+      profile_error: profileError?.message ?? null,
+      user_id: data.user.id,
+    });
+
+    if (profile && !profileError) {
+      const shouldSyncMetadata =
+        profile.avatar_url !==
+          (typeof data.user.user_metadata?.avatar_url === "string"
+            ? data.user.user_metadata.avatar_url
+            : null) ||
+        profile.full_name !==
+          (typeof data.user.user_metadata?.full_name === "string"
+            ? data.user.user_metadata.full_name
+            : "") ||
+        profile.theme_preference !==
+          (typeof data.user.user_metadata?.theme_preference === "string"
+            ? data.user.user_metadata.theme_preference
+            : "light");
+
+      if (shouldSyncMetadata) {
+        const { error: syncError } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: profile.avatar_url,
+            full_name: profile.full_name ?? "",
+            theme_preference: profile.theme_preference ?? "light",
+          },
+        });
+
+        console.info("[avatar-debug] sign-in-metadata-sync", {
+          avatar_url: profile.avatar_url ?? null,
+          error: syncError?.message ?? null,
+          user_id: data.user.id,
+        });
+      }
+    }
   }
 
   if (typeof next === "string" && next.startsWith("/")) {
