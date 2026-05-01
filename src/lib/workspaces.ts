@@ -142,6 +142,28 @@ type MembershipLookupRow = {
   user_id: string;
 };
 
+async function resolveAvatarUrl(storagePath: string | null) {
+  if (!storagePath) {
+    return null;
+  }
+
+  if (storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
+    return storagePath;
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const { data: signed, error: signedError } = await supabase.storage
+    .from("profile-avatars")
+    .createSignedUrl(storagePath, 60 * 60);
+
+  if (!signedError && signed?.signedUrl) {
+    return signed.signedUrl;
+  }
+
+  const { data: publicAsset } = supabase.storage.from("profile-avatars").getPublicUrl(storagePath);
+  return publicAsset.publicUrl ?? null;
+}
+
 export async function getUserMemberships() {
   const user = await requireUser();
   const supabase = await getSupabaseServerClient();
@@ -688,17 +710,7 @@ export async function getCurrentUserProfile() {
     throw new Error(error?.message ?? "Perfil nao encontrado");
   }
 
-  let avatarSignedUrl: string | null = null;
-
-  if (profile.avatar_url) {
-    const { data: signed, error: signedError } = await supabase.storage
-      .from("profile-avatars")
-      .createSignedUrl(profile.avatar_url, 60 * 60);
-
-    if (!signedError) {
-      avatarSignedUrl = signed.signedUrl;
-    }
-  }
+  const avatarSignedUrl = await resolveAvatarUrl(profile.avatar_url);
 
   return {
     ...profile,

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { signUpAction } from "@/app/actions/auth";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { APP_VERSION } from "@/lib/constants";
 
 type SignUpPageProps = {
   searchParams: Promise<{
@@ -18,10 +19,10 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
         <div className="hidden bg-slate-950 p-10 text-white lg:block">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">EiDesk</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">
-            Crie um workspace com visual pronto para operação.
+            Crie um workspace com visual pronto para operacao.
           </h1>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">
-            A base de tickets, equipe e kanban fica disponível assim que a conta for criada.
+            A base de tickets, equipe e kanban fica disponivel assim que a conta for criada.
           </p>
         </div>
 
@@ -30,7 +31,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Cadastro</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Criar conta</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Ao concluir, você poderá criar seu primeiro workspace do EiDesk.
+              Ao concluir, voce podera criar seu primeiro workspace do EiDesk.
             </p>
           </div>
 
@@ -81,11 +82,12 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
           </form>
 
           <p className="mt-6 text-sm text-slate-500">
-            Já possui acesso?{" "}
+            Ja possui acesso?{" "}
             <Link href="/auth/sign-in" className="font-semibold text-sky-700">
               Entrar
             </Link>
           </p>
+          <p className="mt-6 text-center text-xs font-medium text-slate-400">{APP_VERSION}</p>
         </div>
       </section>
     </main>

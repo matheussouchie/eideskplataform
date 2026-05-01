@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { WorkspaceSwitcher } from "@/components/dashboard/workspace-switcher";
+import { APP_VERSION } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { MembershipRow } from "@/lib/workspaces";
 
@@ -198,7 +199,7 @@ export function Sidebar({
                 "flex items-center rounded-2xl py-3 text-sm font-medium transition",
                 collapsed ? "justify-center px-0" : "gap-3 px-3",
                 active
-                  ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                  ? "bg-slate-950 text-white shadow-sm dark:bg-slate-800 dark:text-white"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
               )}
             >
@@ -206,7 +207,7 @@ export function Sidebar({
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-xl text-sm",
                   active
-                    ? "bg-white/12 text-white dark:bg-slate-900 dark:text-slate-950"
+                    ? "bg-white/12 text-white dark:bg-white/10 dark:text-white"
                     : "bg-slate-100 text-current dark:bg-slate-900/30 dark:text-current",
                 )}
               >
@@ -235,23 +236,39 @@ export function Sidebar({
         </div>
       </nav>
 
-      <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+      <div
+        className={cn(
+          "mt-6 rounded-3xl border border-slate-200 bg-slate-50/80 p-3 transition-all dark:border-slate-800 dark:bg-slate-900/60",
+          collapsed ? "flex items-center justify-center p-2" : "",
+        )}
+      >
         {!collapsed ? (
           <WorkspaceSwitcher memberships={memberships} activeWorkspaceId={activeWorkspaceId} />
         ) : (
-          <div className="text-center">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
-              Workspace
-            </p>
-            <p className="mt-2 text-xs font-semibold text-slate-900 dark:text-white">
-              {activeWorkspaceName ? "Ativo" : "N/A"}
-            </p>
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            title={activeWorkspaceName ? `Workspace ativo - ${activeWorkspaceName}` : "Workspace ativo"}
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
+              <path
+                d="M6 20V8.5A1.5 1.5 0 0 1 7.5 7H10v13M10 20V5.5A1.5 1.5 0 0 1 11.5 4h5A1.5 1.5 0 0 1 18 5.5V20M4 20h16"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         )}
       </div>
 
       <div className="mt-auto pt-6">
         <LogoutButton />
+        {!collapsed ? (
+          <p className="mt-4 text-center text-xs font-medium text-slate-400 dark:text-slate-500">
+            {APP_VERSION}
+          </p>
+        ) : null}
       </div>
     </aside>
   );

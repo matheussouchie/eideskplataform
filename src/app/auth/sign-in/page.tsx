@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { signInAction } from "@/app/actions/auth";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { APP_VERSION } from "@/lib/constants";
 
 type SignInPageProps = {
   searchParams: Promise<{
@@ -23,7 +24,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             Atendimento organizado para times que vivem de contexto.
           </h1>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">
-            Dashboard limpo, kanban produtivo e navegação preparada para operação SaaS.
+            Dashboard limpo, kanban produtivo e navegacao preparada para operacao SaaS.
           </p>
         </div>
 
@@ -80,11 +81,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           </form>
 
           <p className="mt-6 text-sm text-slate-500">
-            Ainda não tem conta?{" "}
+            Ainda nao tem conta?{" "}
             <Link href="/auth/sign-up" className="font-semibold text-sky-700">
               Criar agora
             </Link>
           </p>
+          <p className="mt-6 text-center text-xs font-medium text-slate-400">{APP_VERSION}</p>
         </div>
       </section>
     </main>

@@ -65,9 +65,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     <section className="space-y-6">
       <header className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Configuracoes</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Painel admin</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">Configuracoes</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Painel admin</h1>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-300">
             Controle operacional do tenant ativo, com CRUDs e protecoes de administracao.
           </p>
         </div>
@@ -79,8 +79,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               href={`#${item.id}`}
               className={
                 params.panel === item.id
-                  ? "rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
-                  : "rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200"
+                  ? "rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white dark:bg-sky-500 dark:text-slate-950"
+                  : "rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
               }
             >
               {item.label}
@@ -90,12 +90,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       </header>
 
       {params.error ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
           {params.error}
         </p>
       ) : null}
       {params.success ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
           {params.success}
         </p>
       ) : null}
@@ -143,7 +143,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
       {canEdit ? (
         <>
-          <Card className="border-blue-200 bg-blue-50/55 p-5 dark:border-blue-500/20 dark:bg-blue-500/5" id="agents">
+          <Card className="border-sky-200 bg-sky-50/60 p-5 dark:border-sky-500/20 dark:bg-sky-500/8" id="agents">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Agentes</h2>
               <p className="mt-1 text-sm text-slate-500">Criacao, edicao e arquivamento de agentes do workspace.</p>
@@ -246,7 +246,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-rose-200 bg-rose-50/55 p-5 dark:border-rose-500/20 dark:bg-rose-500/5" id="products">
+          <Card className="border-emerald-200 bg-emerald-50/60 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/8" id="products">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Produtos</h2>
               <p className="mt-1 text-sm text-slate-500">Estrutura hierarquica de classificacao do ticket.</p>
@@ -320,7 +320,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-emerald-200 bg-emerald-50/55 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/5" id="categories">
+          <Card className="border-violet-200 bg-violet-50/60 p-5 dark:border-violet-500/20 dark:bg-violet-500/8" id="categories">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Categorias</h2>
               <p className="mt-1 text-sm text-slate-500">Classificacao plana para o contexto do ticket.</p>
@@ -366,7 +366,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-amber-200 bg-amber-50/55 p-5 dark:border-amber-500/20 dark:bg-amber-500/5" id="departments">
+          <Card className="border-blue-200 bg-blue-50/60 p-5 dark:border-blue-500/20 dark:bg-blue-500/8" id="departments">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Departamentos</h2>
               <p className="mt-1 text-sm text-slate-500">Estrutura macro do atendimento.</p>
@@ -413,7 +413,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-violet-200 bg-violet-50/55 p-5 dark:border-violet-500/20 dark:bg-violet-500/5" id="teams">
+          <Card className="border-amber-200 bg-amber-50/60 p-5 dark:border-amber-500/20 dark:bg-amber-500/8" id="teams">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900">Times</h2>
               <p className="mt-1 text-sm text-slate-500">Unidades operacionais vinculadas a departamentos.</p>
