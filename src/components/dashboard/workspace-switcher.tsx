@@ -20,7 +20,7 @@ export function WorkspaceSwitcher({
   return (
     <div className="space-y-3">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
           Workspace ativo
         </p>
       </div>
@@ -36,12 +36,12 @@ export function WorkspaceSwitcher({
               <SubmitButton
                 className={
                   isActive
-                    ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/10 px-4 py-3 text-left text-sm font-medium text-white"
-                    : "w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:border-slate-700 hover:bg-slate-900"
+                    ? "w-full rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-left text-sm font-medium text-sky-800 dark:border-sky-400/40 dark:bg-sky-500/10 dark:text-white"
+                    : "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                 }
                 pendingLabel="Trocando..."
               >
-                {workspace.name} · {membership.role}
+                {workspace.name} - {membership.role}
               </SubmitButton>
             </form>
           );

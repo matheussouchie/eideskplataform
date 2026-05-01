@@ -1,8 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-
-import { updateThemePreferenceAction } from "@/app/actions/profile";
+import { useTheme } from "@/components/theme/theme-provider";
 
 function SunIcon() {
   return (
@@ -32,24 +30,19 @@ function MoonIcon() {
 }
 
 export function ThemeToggle({ themePreference }: { themePreference: string }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams?.size ? `${pathname}?${searchParams.toString()}` : pathname;
-  const nextTheme = themePreference === "dark" ? "light" : "dark";
-  const label = themePreference === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const effectiveTheme = resolvedTheme || (themePreference === "dark" ? "dark" : "light");
+  const label = effectiveTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
 
   return (
-    <form action={updateThemePreferenceAction}>
-      <input type="hidden" name="themePreference" value={nextTheme} />
-      <input type="hidden" name="redirectTo" value={redirectTo} />
-      <button
-        type="submit"
-        aria-label={label}
-        title={label}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-sky-300 hover:text-sky-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-sky-500 dark:hover:text-sky-300"
-      >
-        {themePreference === "dark" ? <SunIcon /> : <MoonIcon />}
-      </button>
-    </form>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={label}
+      title={label}
+      className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-sky-300 hover:text-sky-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-sky-500 dark:hover:text-sky-300"
+    >
+      {effectiveTheme === "dark" ? <SunIcon /> : <MoonIcon />}
+    </button>
   );
 }

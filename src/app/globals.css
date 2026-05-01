@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
@@ -8,10 +10,12 @@
 html {
   min-height: 100%;
   background: #f5f7fb;
+  color-scheme: light;
 }
 
 html.dark {
   background: #020817;
+  color-scheme: dark;
 }
 
 body {

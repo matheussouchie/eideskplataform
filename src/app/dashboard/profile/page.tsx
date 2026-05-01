@@ -87,7 +87,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                   type="email"
                   defaultValue={user.email ?? ""}
                   className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-                  required
+                  placeholder="Deixe como esta para nao alterar"
                 />
               </label>
             </div>

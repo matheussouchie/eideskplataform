@@ -57,8 +57,17 @@ function TicketIcon() {
 function TeamIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-      <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M4.5 18.5a4.5 4.5 0 0 1 7 0M13 18a4 4 0 0 1 6.5 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M4.5 18.5a4.5 4.5 0 0 1 7 0M13 18a4 4 0 0 1 6.5 0"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -79,7 +88,12 @@ function SettingsIcon() {
 function ShieldIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
-      <path d="M12 3.75 5.75 6v5.44c0 4.2 2.52 8.01 6.25 9.81 3.73-1.8 6.25-5.6 6.25-9.81V6L12 3.75Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path
+        d="M12 3.75 5.75 6v5.44c0 4.2 2.52 8.01 6.25 9.81 3.73-1.8 6.25-5.6 6.25-9.81V6L12 3.75Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -119,12 +133,14 @@ export function Sidebar({
     });
   };
 
-  const visibleLinks = links.filter((link) => !link.requireAdmin || ["owner", "admin"].includes(activeRole ?? ""));
+  const visibleLinks = links.filter(
+    (link) => !link.requireAdmin || ["owner", "admin"].includes(activeRole ?? ""),
+  );
 
   return (
     <aside
       className={cn(
-        "hidden xl:fixed xl:inset-y-0 xl:left-0 xl:flex xl:flex-col xl:border-r xl:border-slate-200 xl:bg-slate-950 xl:px-4 xl:py-5 xl:text-slate-100 xl:transition-[width] xl:duration-300 dark:xl:border-slate-800",
+        "hidden xl:fixed xl:inset-y-0 xl:left-0 xl:flex xl:flex-col xl:border-r xl:border-slate-200 xl:bg-white/95 xl:px-4 xl:py-5 xl:text-slate-900 xl:transition-[width] xl:duration-300 dark:xl:border-slate-800 dark:xl:bg-slate-950 dark:xl:text-slate-100",
         collapsed ? "xl:w-[108px]" : "xl:w-[296px]",
       )}
     >
@@ -134,8 +150,8 @@ export function Sidebar({
         </div>
         {!collapsed ? (
           <div className="min-w-0">
-            <p className="text-lg font-semibold tracking-tight text-white">EiDesk</p>
-            <p className="truncate text-xs text-slate-400">{email}</p>
+            <p className="text-lg font-semibold tracking-tight text-slate-950 dark:text-white">EiDesk</p>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{email}</p>
           </div>
         ) : null}
       </div>
@@ -144,14 +160,16 @@ export function Sidebar({
         type="button"
         onClick={toggleCollapsed}
         className={cn(
-          "mb-4 inline-flex h-11 items-center rounded-2xl border border-slate-800 bg-slate-900/80 text-sm font-semibold text-slate-200 transition hover:border-slate-700 hover:bg-slate-900",
+          "mb-4 inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900",
           collapsed ? "justify-center px-0" : "justify-between px-4",
         )}
         aria-label={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
         title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
       >
-        <span className={cn("text-xs uppercase tracking-[0.22em]", collapsed ? "hidden" : "block")}>Navegacao</span>
-        <span className={cn("text-lg", collapsed ? "rotate-180" : "")}>⌃</span>
+        <span className={cn("text-xs uppercase tracking-[0.22em]", collapsed ? "hidden" : "block")}>
+          Navegacao
+        </span>
+        <span className={cn("text-lg", collapsed ? "rotate-180" : "")}>{"<"}</span>
       </button>
 
       <Link
@@ -180,11 +198,11 @@ export function Sidebar({
                 "flex items-center rounded-2xl py-3 text-sm font-medium transition",
                 collapsed ? "justify-center px-0" : "gap-3 px-3",
                 active
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-300 hover:bg-slate-900 hover:text-white",
+                  ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
               )}
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900/10 text-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-sm dark:bg-slate-900/30">
                 {link.icon}
               </span>
               {!collapsed ? link.label : null}
@@ -195,29 +213,36 @@ export function Sidebar({
         <div className="pt-3">
           <div
             className={cn(
-              "rounded-2xl border border-slate-800 bg-slate-900/60 text-sm text-slate-400 transition-all",
+              "rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-500 transition-all dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400",
               collapsed ? "px-0 py-4 text-center" : "px-3 py-3",
             )}
             title="Placeholders"
           >
-            {collapsed ? "…" : "Placeholders"}
+            {collapsed ? "..." : "Placeholders"}
             {!collapsed ? (
-              <p className="mt-1 text-xs text-slate-500">Clientes e automacoes entram nas proximas sprints.</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
+                Clientes e automacoes entram nas proximas sprints.
+              </p>
             ) : null}
           </div>
         </div>
       </nav>
 
-      <div className="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-3">
+      <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/60">
         {!collapsed ? (
           <WorkspaceSwitcher memberships={memberships} activeWorkspaceId={activeWorkspaceId} />
         ) : (
           <div className="text-center">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Workspace</p>
-            <p className="mt-2 text-xs font-semibold text-white">{activeWorkspaceName ? "Ativo" : "N/A"}</p>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
+              Workspace
+            </p>
+            <p className="mt-2 text-xs font-semibold text-slate-900 dark:text-white">
+              {activeWorkspaceName ? "Ativo" : "N/A"}
+            </p>
           </div>
         )}
       </div>
+
       <div className="mt-auto pt-6">
         <LogoutButton />
       </div>

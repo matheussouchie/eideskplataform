@@ -31,28 +31,20 @@ export async function updateProfileAction(formData: FormData) {
   const fullName = readOptionalText(formData, "fullName");
   const email = readOptionalText(formData, "email").toLowerCase();
   const password = readOptionalText(formData, "password");
-  const themePreference = readOptionalText(formData, "themePreference") || "light";
+  const themePreference = readOptionalText(formData, "themePreference");
   const avatar = formData.get("avatar");
 
   if (!fullName || fullName.length < 3) {
     redirectToProfile("Informe um nome com pelo menos 3 caracteres", "error");
   }
 
-  if (!email || !email.includes("@")) {
-    redirectToProfile("Informe um email valido", "error");
-  }
-
-  if (!["light", "dark"].includes(themePreference)) {
+  if (themePreference && !["light", "dark"].includes(themePreference)) {
     redirectToProfile("Tema invalido", "error");
-  }
-
-  if (password && password.length < 8) {
-    redirectToProfile("A senha precisa ter pelo menos 8 caracteres", "error");
   }
 
   const { data: currentProfile, error: profileLookupError } = await supabase
     .from("profiles")
-    .select("avatar_url, domain_id")
+    .select("avatar_url, domain_id, full_name, theme_preference")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -60,52 +52,72 @@ export async function updateProfileAction(formData: FormData) {
     redirectToProfile(profileLookupError?.message ?? "Perfil invalido", "error");
   }
 
+  const nextFullName = fullName || currentProfile.full_name || user.email || "Usuario";
+  const nextThemePreference = themePreference || currentProfile.theme_preference || "light";
   let nextAvatarPath = currentProfile?.avatar_url ?? null;
+  let uploadWarning: string | null = null;
 
   if (avatar instanceof File && avatar.size > 0) {
     if (avatar.size > MAX_AVATAR_SIZE) {
-      redirectToProfile("A foto precisa ter no maximo 50MB", "error");
-    }
+      uploadWarning = "A foto nao foi enviada porque excede 50MB.";
+    } else {
+      const extension = avatar.name.includes(".") ? avatar.name.split(".").pop() : "bin";
+      const storagePath = `${user.id}/avatar-${randomUUID()}-${sanitizeFileName(`profile.${extension}`)}`;
+      const { error: uploadError } = await supabase.storage
+        .from(PROFILE_AVATAR_BUCKET)
+        .upload(storagePath, avatar, {
+          cacheControl: "3600",
+          contentType: avatar.type || "application/octet-stream",
+          upsert: false,
+        });
 
-    const extension = avatar.name.includes(".") ? avatar.name.split(".").pop() : "bin";
-    const storagePath = `${user.id}/avatar-${randomUUID()}-${sanitizeFileName(`profile.${extension}`)}`;
-    const { error: uploadError } = await supabase.storage
-      .from(PROFILE_AVATAR_BUCKET)
-      .upload(storagePath, avatar, {
-        cacheControl: "3600",
-        contentType: avatar.type || "application/octet-stream",
-        upsert: false,
-      });
+      if (uploadError) {
+        uploadWarning = `A foto nao foi enviada: ${uploadError.message}`;
+      } else {
+        nextAvatarPath = storagePath;
 
-    if (uploadError) {
-      redirectToProfile(uploadError.message, "error");
-    }
-
-    nextAvatarPath = storagePath;
-
-    if (currentProfile?.avatar_url && currentProfile.avatar_url !== storagePath) {
-      await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove([currentProfile.avatar_url]);
+        if (currentProfile?.avatar_url && currentProfile.avatar_url !== storagePath) {
+          await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove([currentProfile.avatar_url]);
+        }
+      }
     }
   }
-
-  const { error: authError } = await supabase.auth.updateUser({
+  const authPayload: {
+    data: { full_name: string };
+    email?: string;
+    password?: string;
+  } = {
     data: {
-      full_name: fullName,
+      full_name: nextFullName,
     },
-    email,
-    password: password || undefined,
-  });
+  };
 
-  if (authError) {
-    redirectToProfile(authError.message, "error");
+  if (email && email !== user.email) {
+    if (!email.includes("@")) {
+      redirectToProfile("Informe um email valido", "error");
+    }
+    authPayload.email = email;
+  }
+
+  if (password) {
+    authPayload.password = password;
+  }
+
+  const shouldUpdateAuth = Boolean(authPayload.email || authPayload.password || nextFullName !== (user.user_metadata?.full_name ?? user.email));
+  if (shouldUpdateAuth) {
+    const { error: authError } = await supabase.auth.updateUser(authPayload);
+
+    if (authError) {
+      redirectToProfile(authError.message, "error");
+    }
   }
 
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
       avatar_url: nextAvatarPath,
-      full_name: fullName,
-      theme_preference: themePreference,
+      full_name: nextFullName,
+      theme_preference: nextThemePreference,
     })
     .eq("id", user.id)
     .eq("domain_id", currentProfile.domain_id);
@@ -117,17 +129,15 @@ export async function updateProfileAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/tickets");
-  redirectToProfile("Perfil atualizado com sucesso", "success");
+  redirectToProfile(uploadWarning ?? "Perfil atualizado com sucesso", "success");
 }
 
-export async function updateThemePreferenceAction(formData: FormData) {
+export async function persistThemePreferenceAction(themePreference: string) {
   const user = await requireUser();
   const supabase = await getSupabaseServerClient();
-  const themePreference = readOptionalText(formData, "themePreference");
-  const redirectTo = readOptionalText(formData, "redirectTo") || "/dashboard";
 
   if (!["light", "dark"].includes(themePreference)) {
-    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Tema invalido")}&notice=${Date.now()}`);
+    throw new Error("Tema invalido");
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -137,7 +147,7 @@ export async function updateThemePreferenceAction(formData: FormData) {
     .maybeSingle();
 
   if (profileError || !profile?.domain_id) {
-    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(profileError?.message ?? "Perfil invalido")}&notice=${Date.now()}`);
+    throw new Error(profileError?.message ?? "Perfil invalido");
   }
 
   const { error } = await supabase
@@ -147,11 +157,24 @@ export async function updateThemePreferenceAction(formData: FormData) {
     .eq("domain_id", profile.domain_id);
 
   if (error) {
-    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(error.message)}&notice=${Date.now()}`);
+    throw new Error(error.message);
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/settings");
+  return { success: true } as const;
+}
+
+export async function updateThemePreferenceAction(formData: FormData) {
+  const themePreference = readOptionalText(formData, "themePreference");
+  const redirectTo = readOptionalText(formData, "redirectTo") || "/dashboard";
+
+  try {
+    await persistThemePreferenceAction(themePreference);
+  } catch (error) {
+    redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}error=${encodeURIComponent((error as Error).message)}&notice=${Date.now()}`);
+  }
+
   redirect(`${redirectTo}${redirectTo.includes("?") ? "&" : "?"}success=${encodeURIComponent("Tema atualizado")}&notice=${Date.now()}`);
 }
