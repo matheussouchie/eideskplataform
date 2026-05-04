@@ -60,6 +60,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     { id: "teams", label: "Times" },
     { id: "governanca", label: "Governanca" },
   ];
+  const sectionCardClass = "border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950";
+  const panelClass = "grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60";
+  const itemClass = "rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/80";
+  const fieldClass =
+    "h-11 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-sky-400 dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white dark:placeholder:text-[#6B7280] dark:focus:border-sky-500 dark:focus:bg-[#0B0F1A]";
+  const workspaceFieldClass =
+    "h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white dark:placeholder:text-[#6B7280] dark:focus:border-sky-500 dark:focus:bg-[#0B0F1A] dark:disabled:bg-slate-900";
+  const primaryButtonClass =
+    "inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400";
 
   return (
     <section className="space-y-6">
@@ -100,7 +109,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </p>
       ) : null}
 
-      <Card className="border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950" id="workspace">
+      <Card className={sectionCardClass} id="workspace">
         <div className="mb-5">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Workspace</h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Administracao base do tenant atual.</p>
@@ -111,7 +120,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome</span>
             <input
-              className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
+              className={workspaceFieldClass}
               name="name"
               defaultValue={activeMembership.workspace!.name}
               disabled={!canEdit}
@@ -121,7 +130,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <label className="grid gap-2">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Slug</span>
             <input
-              className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
+              className={workspaceFieldClass}
               name="slug"
               defaultValue={activeMembership.workspace!.slug}
               disabled={!canEdit}
@@ -130,41 +139,41 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </label>
           {canEdit ? (
             <SubmitButton
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
               pendingLabel="Atualizando..."
             >
               Salvar alteracoes
             </SubmitButton>
           ) : (
-            <p className="text-sm text-slate-500">Somente owner ou admin podem editar este workspace.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Somente owner ou admin podem editar este workspace.</p>
           )}
         </form>
       </Card>
 
       {canEdit ? (
         <>
-          <Card className="border-sky-200 bg-sky-100 p-5 dark:border-sky-500/20 dark:bg-sky-900/30" id="agents">
+          <Card className={sectionCardClass} id="agents">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Agentes</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Criacao, edicao e arquivamento de agentes do workspace.</p>
             </div>
 
-            <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-4" action={createAgentAction}>
+            <form className={`${panelClass} xl:grid-cols-4`} action={createAgentAction}>
               <label className="grid gap-2 xl:col-span-1">
-                <span className="text-sm font-medium text-slate-700">Nome</span>
-                <input name="fullName" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome</span>
+                <input name="fullName" className={fieldClass} required />
               </label>
               <label className="grid gap-2 xl:col-span-1">
-                <span className="text-sm font-medium text-slate-700">Email</span>
-                <input name="email" type="email" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Email</span>
+                <input name="email" type="email" className={fieldClass} required />
               </label>
               <label className="grid gap-2 xl:col-span-1">
-                <span className="text-sm font-medium text-slate-700">Senha inicial</span>
-                <input name="password" type="password" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Senha inicial</span>
+                <input name="password" type="password" className={fieldClass} required />
               </label>
               <label className="grid gap-2 xl:col-span-1">
-                <span className="text-sm font-medium text-slate-700">Time</span>
-                <select name="teamId" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Time</span>
+                <select name="teamId" className={fieldClass} required>
                   {departmentsWithTeams.flatMap((department) =>
                     department.teams.map((team) => (
                       <option key={team.id} value={team.id}>
@@ -176,7 +185,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </label>
               <div className="xl:col-span-4">
                 <SubmitButton
-                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className={primaryButtonClass}
                   pendingLabel="Criando agente..."
                 >
                   Criar agente
@@ -186,24 +195,24 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
             <div className="mt-5 grid gap-4">
               {agents.map((agent) => (
-                <div key={agent.user_id} className="rounded-3xl border border-slate-200 p-4">
+                <div key={agent.user_id} className={itemClass}>
                   <form className="grid gap-3 xl:grid-cols-[1.1fr_1fr_auto_auto]" action={updateAgentAction}>
                     <input type="hidden" name="agentUserId" value={agent.user_id} />
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nome</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Nome</span>
                       <input
                         name="fullName"
                         defaultValue={agent.profile?.full_name ?? ""}
-                        className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400"
+                        className={fieldClass}
                         required
                       />
                     </label>
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Time</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Time</span>
                       <select
                         name="teamId"
                         defaultValue={agent.profile?.team_id ?? undefined}
-                        className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400"
+                        className={fieldClass}
                         required
                       >
                         {departmentsWithTeams.flatMap((department) =>
@@ -215,13 +224,13 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                         )}
                       </select>
                     </label>
-                    <label className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <label className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-[#2A2F3A] dark:bg-[#0B0F1A]">
                       <input type="checkbox" name="isActive" defaultChecked={agent.profile?.is_active ?? false} />
-                      <span className="text-sm font-medium text-slate-700">Ativo</span>
+                      <span className="text-sm font-medium text-slate-700 dark:text-white">Ativo</span>
                     </label>
                     <div className="flex items-end gap-2">
                       <SubmitButton
-                        className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className={primaryButtonClass}
                         pendingLabel="Salvando..."
                       >
                         Salvar
@@ -229,7 +238,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                     </div>
                   </form>
 
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>{agent.profile?.is_active ? "Agente ativo" : "Agente inativo"}</span>
                     <form action={archiveAgentAction}>
                       <input type="hidden" name="agentUserId" value={agent.user_id} />
@@ -246,20 +255,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-green-200 bg-green-100 p-5 dark:border-green-500/20 dark:bg-green-900/30" id="products">
+          <Card className={sectionCardClass} id="products">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Produtos</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Estrutura hierarquica de classificacao do ticket.</p>
             </div>
 
-            <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_1fr_auto]" action={createProductAction}>
+            <form className={`${panelClass} xl:grid-cols-[1fr_1fr_auto]`} action={createProductAction}>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Nome do produto</span>
-                <input name="name" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome do produto</span>
+                <input name="name" className={fieldClass} required />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Produto pai</span>
-                <select name="parentId" defaultValue="" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Produto pai</span>
+                <select name="parentId" defaultValue="" className={fieldClass}>
                   <option value="">Sem pai</option>
                   {products.map((product) => (
                     <option key={product.id} value={product.id}>
@@ -270,7 +279,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               </label>
               <div className="flex items-end">
                 <SubmitButton
-                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className={primaryButtonClass}
                   pendingLabel="Criando..."
                 >
                   Criar produto
@@ -280,16 +289,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
             <div className="mt-5 grid gap-4">
               {products.map((product) => (
-                <div key={product.id} className="rounded-3xl border border-slate-200 p-4">
+                <div key={product.id} className={itemClass}>
                   <form className="grid gap-3 xl:grid-cols-[1fr_1fr_auto_auto]" action={updateProductAction}>
                     <input type="hidden" name="productId" value={product.id} />
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nome</span>
-                      <input name="name" defaultValue={product.name} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400" required />
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Nome</span>
+                      <input name="name" defaultValue={product.name} className={fieldClass} required />
                     </label>
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pai</span>
-                      <select name="parentId" defaultValue={product.parent_id ?? ""} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Pai</span>
+                      <select name="parentId" defaultValue={product.parent_id ?? ""} className={fieldClass}>
                         <option value="">Sem pai</option>
                         {products
                           .filter((candidate) => candidate.id !== product.id)
@@ -301,12 +310,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                       </select>
                     </label>
                     <div className="flex items-end">
-                      <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      <SubmitButton className={primaryButtonClass}>
                         Salvar
                       </SubmitButton>
                     </div>
                   </form>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>Pai atual: {product.parent_id ? productNameById.get(product.parent_id) ?? "Nao encontrado" : "Raiz"}</span>
                     <form action={deleteProductAction}>
                       <input type="hidden" name="productId" value={product.id} />
@@ -320,19 +329,19 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-purple-200 bg-purple-100 p-5 dark:border-purple-500/20 dark:bg-purple-900/30" id="categories">
+          <Card className={sectionCardClass} id="categories">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Categorias</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Classificacao plana para o contexto do ticket.</p>
             </div>
 
-            <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_auto]" action={createCategoryAction}>
+            <form className={`${panelClass} xl:grid-cols-[1fr_auto]`} action={createCategoryAction}>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Nome da categoria</span>
-                <input name="name" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome da categoria</span>
+                <input name="name" className={fieldClass} required />
               </label>
               <div className="flex items-end">
-                <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                <SubmitButton className={primaryButtonClass}>
                   Criar categoria
                 </SubmitButton>
               </div>
@@ -340,15 +349,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
             <div className="mt-5 grid gap-4">
               {categories.map((category) => (
-                <div key={category.id} className="rounded-3xl border border-slate-200 p-4">
+                <div key={category.id} className={itemClass}>
                   <form className="grid gap-3 xl:grid-cols-[1fr_auto_auto]" action={updateCategoryAction}>
                     <input type="hidden" name="categoryId" value={category.id} />
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nome</span>
-                      <input name="name" defaultValue={category.name} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400" required />
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Nome</span>
+                      <input name="name" defaultValue={category.name} className={fieldClass} required />
                     </label>
                     <div className="flex items-end">
-                      <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      <SubmitButton className={primaryButtonClass}>
                         Salvar
                       </SubmitButton>
                     </div>
@@ -366,19 +375,19 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-100 p-5 dark:border-blue-500/20 dark:bg-blue-900/30" id="departments">
+          <Card className={sectionCardClass} id="departments">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Departamentos</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Estrutura macro do atendimento.</p>
             </div>
 
-            <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_auto]" action={createDepartmentAction}>
+            <form className={`${panelClass} xl:grid-cols-[1fr_auto]`} action={createDepartmentAction}>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Nome do departamento</span>
-                <input name="name" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome do departamento</span>
+                <input name="name" className={fieldClass} required />
               </label>
               <div className="flex items-end">
-                <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                <SubmitButton className={primaryButtonClass}>
                   Criar departamento
                 </SubmitButton>
               </div>
@@ -386,20 +395,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
             <div className="mt-5 grid gap-4">
               {departmentsWithTeams.map((department) => (
-                <div key={department.id} className="rounded-3xl border border-slate-200 p-4">
+                <div key={department.id} className={itemClass}>
                   <form className="grid gap-3 xl:grid-cols-[1fr_auto]" action={updateDepartmentAction}>
                     <input type="hidden" name="departmentId" value={department.id} />
                     <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nome</span>
-                      <input name="name" defaultValue={department.name} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400" required />
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Nome</span>
+                      <input name="name" defaultValue={department.name} className={fieldClass} required />
                     </label>
                     <div className="flex items-end">
-                      <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      <SubmitButton className={primaryButtonClass}>
                         Salvar
                       </SubmitButton>
                     </div>
                   </form>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>{department.teams.length} times vinculados</span>
                     <form action={deleteDepartmentAction}>
                       <input type="hidden" name="departmentId" value={department.id} />
@@ -413,20 +422,20 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-yellow-200 bg-yellow-100 p-5 dark:border-yellow-500/20 dark:bg-yellow-900/30" id="teams">
+          <Card className={sectionCardClass} id="teams">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Times</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Unidades operacionais vinculadas a departamentos.</p>
             </div>
 
-            <form className="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 xl:grid-cols-[1fr_1fr_auto]" action={createTeamAction}>
+            <form className={`${panelClass} xl:grid-cols-[1fr_1fr_auto]`} action={createTeamAction}>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Nome do time</span>
-                <input name="name" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Nome do time</span>
+                <input name="name" className={fieldClass} required />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700">Departamento</span>
-                <select name="departmentId" className="h-11 rounded-2xl border border-slate-200 bg-white px-4 outline-none focus:border-sky-400" required>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Departamento</span>
+                <select name="departmentId" className={fieldClass} required>
                   {departmentsWithTeams.map((department) => (
                     <option key={department.id} value={department.id}>
                       {department.name}
@@ -435,7 +444,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 </select>
               </label>
               <div className="flex items-end">
-                <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                <SubmitButton className={primaryButtonClass}>
                   Criar time
                 </SubmitButton>
               </div>
@@ -444,16 +453,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             <div className="mt-5 grid gap-4">
               {departmentsWithTeams.flatMap((department) =>
                 department.teams.map((team) => (
-                  <div key={team.id} className="rounded-3xl border border-slate-200 p-4">
+                  <div key={team.id} className={itemClass}>
                     <form className="grid gap-3 xl:grid-cols-[1fr_1fr_auto]" action={updateTeamAction}>
                       <input type="hidden" name="teamId" value={team.id} />
                       <label className="grid gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nome</span>
-                        <input name="name" defaultValue={team.name} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400" required />
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Nome</span>
+                        <input name="name" defaultValue={team.name} className={fieldClass} required />
                       </label>
                       <label className="grid gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Departamento</span>
-                        <select name="departmentId" defaultValue={team.department_id} className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400" required>
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Departamento</span>
+                        <select name="departmentId" defaultValue={team.department_id} className={fieldClass} required>
                           {departmentsWithTeams.map((departmentOption) => (
                             <option key={departmentOption.id} value={departmentOption.id}>
                               {departmentOption.name}
@@ -462,12 +471,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                         </select>
                       </label>
                       <div className="flex items-end">
-                        <SubmitButton className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                        <SubmitButton className={primaryButtonClass}>
                           Salvar
                         </SubmitButton>
                       </div>
                     </form>
-                    <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
                       <span>Departamento atual: {department.name}</span>
                       <form action={deleteTeamAction}>
                         <input type="hidden" name="teamId" value={team.id} />
@@ -482,7 +491,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
           </Card>
 
-          <Card className="border-sky-200 bg-sky-50/55 p-5 dark:border-sky-500/20 dark:bg-sky-500/5" id="governanca">
+          <Card className={sectionCardClass} id="governanca">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Governanca de tickets</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-200">Acesse a triagem global para corrigir tickets desalinhados.</p>
@@ -498,7 +507,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </>
       ) : (
         <Card className="p-5">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             O painel admin completo desta sprint esta disponivel apenas para owner e admin.
           </p>
         </Card>

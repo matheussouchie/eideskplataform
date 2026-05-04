@@ -134,7 +134,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             </label>
 
             <SubmitButton
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+              className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
               pendingLabel="Salvando perfil..."
             >
               Salvar alteracoes

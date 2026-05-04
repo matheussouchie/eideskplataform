@@ -4,6 +4,7 @@ import { TicketCard } from "@/components/kanban/ticket-card";
 import type { TicketWithRelations } from "@/lib/workspaces";
 
 type KanbanColumnProps = {
+  statusId?: string;
   title: string;
   tone: "blue" | "amber" | "violet" | "emerald";
   tickets: TicketWithRelations[];
@@ -23,6 +24,7 @@ const toneMap = {
 };
 
 export function KanbanColumn({
+  statusId,
   title,
   tone,
   tickets,
@@ -53,13 +55,14 @@ export function KanbanColumn({
 
   return (
     <section
+      data-status-id={statusId}
       onDragLeave={onDragLeaveColumn}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       className={
         isDropActive
-          ? "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-sky-300 bg-sky-50/70 p-3 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-500/50 dark:bg-sky-500/10"
-          : "flex w-[320px] shrink-0 flex-col rounded-[28px] border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/60"
+          ? "flex w-[280px] shrink-0 flex-col rounded-[28px] border border-sky-300 bg-sky-50/70 p-3 shadow-[0_0_0_1px_rgba(56,189,248,0.35)] dark:border-sky-500/50 dark:bg-sky-500/10 md:w-[300px] xl:w-[320px]"
+          : "flex w-[280px] shrink-0 flex-col rounded-[28px] border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/60 md:w-[300px] xl:w-[320px]"
       }
     >
       <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-950">

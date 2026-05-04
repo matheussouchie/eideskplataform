@@ -329,7 +329,7 @@ export function NewTicketForm({
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Rascunho persistido automaticamente enquanto voce digita.
         </p>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={async () => {
@@ -342,12 +342,12 @@ export function NewTicketForm({
               window.sessionStorage.removeItem(submitFlagKey);
               await clearTicketDraftAction();
             }}
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white"
+            className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white sm:w-auto"
           >
             Limpar rascunho
           </button>
           <SubmitButton
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+            className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400 sm:w-auto"
             pendingLabel="Criando ticket..."
           >
             Criar ticket

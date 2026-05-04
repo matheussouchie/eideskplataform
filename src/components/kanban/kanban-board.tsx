@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type DragEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type DragEvent, type TouchEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { moveTicketStatusAction } from "@/app/actions/tickets";
@@ -65,16 +65,78 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
   const router = useRouter();
   const [boardColumns, setBoardColumns] = useState(columns);
   const [draggingTicketId, setDraggingTicketId] = useState<string | null>(null);
+  const [touchDraggingTicketId, setTouchDraggingTicketId] = useState<string | null>(null);
   const [dropStatusId, setDropStatusId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const touchPointerRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setBoardColumns(columns);
   }, [columns]);
 
+  const findDropStatusFromPoint = (x: number, y: number) => {
+    const element = document.elementFromPoint(x, y);
+    return element?.closest<HTMLElement>("[data-status-id]")?.dataset.statusId ?? null;
+  };
+
+  const commitTouchDrop = (x: number, y: number) => {
+    const targetStatusId = findDropStatusFromPoint(x, y);
+
+    setTouchDraggingTicketId(null);
+    setDraggingTicketId(null);
+    setDropStatusId(null);
+    touchPointerRef.current = null;
+
+    if (!targetStatusId) {
+      return;
+    }
+
+    handleDrop(targetStatusId);
+  };
+
+  const handleTouchStart = (ticketId: string) => {
+    if (!canManageWorkflow) {
+      return;
+    }
+
+    setTouchDraggingTicketId(ticketId);
+    setDraggingTicketId(ticketId);
+    setError(null);
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLElement>) => {
+    if (!canManageWorkflow || !touchDraggingTicketId) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    touchPointerRef.current = { x: touch.clientX, y: touch.clientY };
+    setDropStatusId(findDropStatusFromPoint(touch.clientX, touch.clientY));
+  };
+
+  const handleTouchEnd = () => {
+    if (!canManageWorkflow || !touchDraggingTicketId || !touchPointerRef.current) {
+      setTouchDraggingTicketId(null);
+      setDraggingTicketId(null);
+      setDropStatusId(null);
+      touchPointerRef.current = null;
+      return;
+    }
+
+    commitTouchDrop(touchPointerRef.current.x, touchPointerRef.current.y);
+  };
+
   const handleDrop = (targetStatusId: string, event?: DragEvent<HTMLElement>) => {
-    const droppedTicketId = draggingTicketId ?? event?.dataTransfer.getData("text/plain") ?? null;
+    const droppedTicketId =
+      draggingTicketId ?? touchDraggingTicketId ?? event?.dataTransfer.getData("text/plain") ?? null;
 
     if (!canManageWorkflow || !droppedTicketId) {
       return;
@@ -131,6 +193,7 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
           {boardColumns.map((column) => (
             <KanbanColumn
               key={column.status.id}
+              statusId={column.status.id}
               title={column.status.name}
               tone={
                 column.status.name.toLowerCase().includes("atendimento")
@@ -170,6 +233,9 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
                 <div
                   key={ticket.id}
                   draggable={canManageWorkflow}
+                  onTouchStart={() => handleTouchStart(ticket.id)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onDragStart={(event) => {
                     if (!canManageWorkflow) {
                       return;
@@ -185,7 +251,7 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
                     setDropStatusId(null);
                   }}
                   className={
-                    draggingTicketId === ticket.id
+                    draggingTicketId === ticket.id || touchDraggingTicketId === ticket.id
                       ? "cursor-grabbing opacity-60"
                       : canManageWorkflow
                         ? "cursor-grab"

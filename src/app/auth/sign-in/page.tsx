@@ -86,7 +86,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               Criar agora
             </Link>
           </p>
-          <p className="mt-6 text-center text-xs font-medium text-slate-400">{APP_VERSION}</p>
+          <p className="mt-6 text-center text-xs font-medium text-slate-400">Versão {APP_VERSION}</p>
         </div>
       </section>
     </main>
