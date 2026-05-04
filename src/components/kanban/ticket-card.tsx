@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { memo } from "react";
 
 import { assumeTicketAction } from "@/app/actions/tickets";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +39,7 @@ function statusVariant(statusName: string) {
   return "status-open" as const;
 }
 
-export function TicketCard({
+export const TicketCard = memo(function TicketCard({
   ticket,
   statusLabel,
   canAssume,
@@ -113,4 +116,4 @@ export function TicketCard({
       </div>
     </Card>
   );
-}
+});

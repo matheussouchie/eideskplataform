@@ -1,9 +1,9 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { createWorkspaceAction } from "@/app/actions/workspaces";
-import { MetricCard } from "@/components/dashboard/metric-card";
-import { OpsMetricPanel } from "@/components/dashboard/ops-metric-panel";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { SkeletonCard } from "@/components/skeletons/skeleton-card";
 import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import {
@@ -17,6 +17,20 @@ import {
   getWorkspaceTicketStatuses,
   getWorkspaceTicketsDetailed,
 } from "@/lib/workspaces";
+
+const LazyMetricCard = dynamic(
+  () => import("@/components/dashboard/metric-card").then((module) => module.MetricCard),
+  {
+    loading: () => <SkeletonCard />,
+  },
+);
+
+const LazyOpsMetricPanel = dynamic(
+  () => import("@/components/dashboard/ops-metric-panel").then((module) => module.OpsMetricPanel),
+  {
+    loading: () => <SkeletonCard className="min-h-[250px]" />,
+  },
+);
 
 type DashboardPageProps = {
   searchParams: Promise<{
@@ -149,7 +163,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       ) : null}
 
       <section className="grid gap-5 xl:grid-cols-3">
-        <MetricCard
+        <LazyMetricCard
           href="/dashboard/tickets?scope=mine"
           label="Meus Tickets"
           total={myTickets.length}
@@ -161,7 +175,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             { label: "Resolvidos", value: myBreakdown.resolved },
           ]}
         />
-        <MetricCard
+        <LazyMetricCard
           href="/dashboard/tickets?scope=team"
           label="Tickets do Time"
           total={teamTickets.length}
@@ -174,7 +188,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           ]}
           accent="slate"
         />
-        <MetricCard
+        <LazyMetricCard
           href="/dashboard/tickets?scope=department"
           label="Tickets do Departamento"
           total={departmentTickets.length}
@@ -271,17 +285,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </section>
 
       <section className="grid gap-5 xl:grid-cols-3">
-        <OpsMetricPanel
+        <LazyOpsMetricPanel
           title="Tickets por status"
           subtitle="Distribuicao operacional atual por etapa do fluxo."
           rows={workflowMetrics.byStatus}
         />
-        <OpsMetricPanel
+        <LazyOpsMetricPanel
           title="Tickets por agente"
           subtitle="Volume atribuido para cada agente do workspace."
           rows={workflowMetrics.byAgent}
         />
-        <OpsMetricPanel
+        <LazyOpsMetricPanel
           title="Tickets por time"
           subtitle="Carga atual de atendimento por time."
           rows={workflowMetrics.byTeam}

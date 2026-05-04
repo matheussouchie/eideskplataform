@@ -1,4 +1,4 @@
-import type { DragEvent, ReactNode } from "react";
+import { memo, type DragEvent, type ReactNode } from "react";
 
 import { TicketCard } from "@/components/kanban/ticket-card";
 import type { TicketWithRelations } from "@/lib/workspaces";
@@ -23,7 +23,7 @@ const toneMap = {
   emerald: "from-emerald-500 to-teal-600",
 };
 
-export function KanbanColumn({
+export const KanbanColumn = memo(function KanbanColumn({
   statusId,
   title,
   tone,
@@ -92,4 +92,4 @@ export function KanbanColumn({
       </div>
     </section>
   );
-}
+});

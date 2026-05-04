@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { memo } from "react";
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -17,7 +20,7 @@ const accentMap = {
   slate: "from-slate-500 via-slate-700 to-slate-900",
 };
 
-export function MetricCard({
+export const MetricCard = memo(function MetricCard({
   href,
   label,
   total,
@@ -54,4 +57,4 @@ export function MetricCard({
       </Card>
     </Link>
   );
-}
+});

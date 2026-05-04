@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { WorkspaceSwitcher } from "@/components/dashboard/workspace-switcher";
-import { APP_SYSTEM_LABEL, APP_VERSION_LABEL } from "@/lib/constants";
+import { APP_SYSTEM_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { MembershipRow } from "@/lib/workspaces";
 
@@ -108,7 +108,7 @@ const links: NavItem[] = [
   { href: "/dashboard/admin/tickets", label: "Governanca", icon: <ShieldIcon />, requireAdmin: true },
 ];
 
-export function Sidebar({
+export const Sidebar = memo(function Sidebar({
   activeRole,
   activeWorkspaceId,
   activeWorkspaceName,
@@ -145,16 +145,17 @@ export function Sidebar({
     };
   }, []);
 
-  const toggleCollapsed = () => {
+  const toggleCollapsed = useCallback(() => {
     setCollapsed((current) => {
       const next = !current;
       window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
       return next;
     });
-  };
+  }, []);
 
-  const visibleLinks = links.filter(
-    (link) => !link.requireAdmin || ["owner", "admin"].includes(activeRole ?? ""),
+  const visibleLinks = useMemo(
+    () => links.filter((link) => !link.requireAdmin || ["owner", "admin"].includes(activeRole ?? "")),
+    [activeRole],
   );
 
   const renderSidebarContent = (mode: "desktop" | "mobile") => {
@@ -299,14 +300,9 @@ export function Sidebar({
         <div className="mt-auto pt-6">
           <LogoutButton />
           {!isCollapsed ? (
-            <>
-              <p className="mt-4 text-center text-xs font-medium text-slate-500 dark:text-slate-400">
-                {APP_SYSTEM_LABEL}
-              </p>
-              <p className="mt-1 text-center text-[11px] font-medium text-slate-400 dark:text-slate-500">
-                Desktop principal | mobile funcional | {APP_VERSION_LABEL}
-              </p>
-            </>
+            <p className="mt-4 text-center text-xs font-medium text-slate-500 dark:text-slate-400">
+              {APP_SYSTEM_LABEL}
+            </p>
           ) : null}
         </div>
       </>
@@ -343,4 +339,4 @@ export function Sidebar({
       </aside>
     </>
   );
-}
+});

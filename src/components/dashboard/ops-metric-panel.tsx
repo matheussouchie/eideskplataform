@@ -1,6 +1,10 @@
+"use client";
+
+import { memo } from "react";
+
 import { Card } from "@/components/ui/card";
 
-export function OpsMetricPanel({
+export const OpsMetricPanel = memo(function OpsMetricPanel({
   title,
   subtitle,
   rows,
@@ -37,4 +41,4 @@ export function OpsMetricPanel({
       </div>
     </Card>
   );
-}
+});

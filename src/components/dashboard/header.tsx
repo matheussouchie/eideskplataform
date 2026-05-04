@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { memo } from "react";
 
 import { MobileSidebarToggle } from "@/components/dashboard/mobile-sidebar-toggle";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -13,7 +16,7 @@ type DashboardHeaderProps = {
   workspaceName?: string;
 };
 
-export function DashboardHeader({
+export const DashboardHeader = memo(function DashboardHeader({
   avatarUrl,
   themePreference,
   userName,
@@ -77,4 +80,4 @@ export function DashboardHeader({
       </div>
     </header>
   );
-}
+});

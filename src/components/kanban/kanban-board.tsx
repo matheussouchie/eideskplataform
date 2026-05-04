@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type DragEvent, type TouchEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type DragEvent,
+  type TouchEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { moveTicketStatusAction } from "@/app/actions/tickets";
@@ -75,66 +84,12 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
     setBoardColumns(columns);
   }, [columns]);
 
-  const findDropStatusFromPoint = (x: number, y: number) => {
+  const findDropStatusFromPoint = useCallback((x: number, y: number) => {
     const element = document.elementFromPoint(x, y);
     return element?.closest<HTMLElement>("[data-status-id]")?.dataset.statusId ?? null;
-  };
+  }, []);
 
-  const commitTouchDrop = (x: number, y: number) => {
-    const targetStatusId = findDropStatusFromPoint(x, y);
-
-    setTouchDraggingTicketId(null);
-    setDraggingTicketId(null);
-    setDropStatusId(null);
-    touchPointerRef.current = null;
-
-    if (!targetStatusId) {
-      return;
-    }
-
-    handleDrop(targetStatusId);
-  };
-
-  const handleTouchStart = (ticketId: string) => {
-    if (!canManageWorkflow) {
-      return;
-    }
-
-    setTouchDraggingTicketId(ticketId);
-    setDraggingTicketId(ticketId);
-    setError(null);
-  };
-
-  const handleTouchMove = (event: TouchEvent<HTMLElement>) => {
-    if (!canManageWorkflow || !touchDraggingTicketId) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const touch = event.touches[0];
-
-    if (!touch) {
-      return;
-    }
-
-    touchPointerRef.current = { x: touch.clientX, y: touch.clientY };
-    setDropStatusId(findDropStatusFromPoint(touch.clientX, touch.clientY));
-  };
-
-  const handleTouchEnd = () => {
-    if (!canManageWorkflow || !touchDraggingTicketId || !touchPointerRef.current) {
-      setTouchDraggingTicketId(null);
-      setDraggingTicketId(null);
-      setDropStatusId(null);
-      touchPointerRef.current = null;
-      return;
-    }
-
-    commitTouchDrop(touchPointerRef.current.x, touchPointerRef.current.y);
-  };
-
-  const handleDrop = (targetStatusId: string, event?: DragEvent<HTMLElement>) => {
+  const handleDrop = useCallback((targetStatusId: string, event?: DragEvent<HTMLElement>) => {
     const droppedTicketId =
       draggingTicketId ?? touchDraggingTicketId ?? event?.dataTransfer.getData("text/plain") ?? null;
 
@@ -174,7 +129,153 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
 
       router.refresh();
     });
-  };
+  }, [boardColumns, canManageWorkflow, draggingTicketId, router, touchDraggingTicketId]);
+
+  const commitTouchDrop = useCallback((x: number, y: number) => {
+    const targetStatusId = findDropStatusFromPoint(x, y);
+
+    setTouchDraggingTicketId(null);
+    setDraggingTicketId(null);
+    setDropStatusId(null);
+    touchPointerRef.current = null;
+
+    if (!targetStatusId) {
+      return;
+    }
+
+    handleDrop(targetStatusId);
+  }, [findDropStatusFromPoint, handleDrop]);
+
+  const handleTouchStart = useCallback((ticketId: string) => {
+    if (!canManageWorkflow) {
+      return;
+    }
+
+    setTouchDraggingTicketId(ticketId);
+    setDraggingTicketId(ticketId);
+    setError(null);
+  }, [canManageWorkflow]);
+
+  const handleTouchMove = useCallback((event: TouchEvent<HTMLElement>) => {
+    if (!canManageWorkflow || !touchDraggingTicketId) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    touchPointerRef.current = { x: touch.clientX, y: touch.clientY };
+    setDropStatusId(findDropStatusFromPoint(touch.clientX, touch.clientY));
+  }, [canManageWorkflow, findDropStatusFromPoint, touchDraggingTicketId]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!canManageWorkflow || !touchDraggingTicketId || !touchPointerRef.current) {
+      setTouchDraggingTicketId(null);
+      setDraggingTicketId(null);
+      setDropStatusId(null);
+      touchPointerRef.current = null;
+      return;
+    }
+
+    commitTouchDrop(touchPointerRef.current.x, touchPointerRef.current.y);
+  }, [canManageWorkflow, commitTouchDrop, touchDraggingTicketId]);
+
+  const renderedColumns = useMemo(
+    () =>
+      boardColumns.map((column) => (
+        <KanbanColumn
+          key={column.status.id}
+          statusId={column.status.id}
+          title={column.status.name}
+          tone={
+            column.status.name.toLowerCase().includes("atendimento")
+              ? "amber"
+              : column.status.name.toLowerCase().includes("aguardando")
+                ? "violet"
+                : column.status.name.toLowerCase().includes("resolvido") ||
+                    column.status.name.toLowerCase().includes("fechado")
+                  ? "emerald"
+                  : "blue"
+          }
+          tickets={column.tickets}
+          canAssume={canManageWorkflow}
+          isDropActive={dropStatusId === column.status.id}
+          onDropTicket={
+            canManageWorkflow
+              ? (event) => {
+                  handleDrop(column.status.id, event);
+                }
+              : undefined
+          }
+          onDragOverColumn={
+            canManageWorkflow
+              ? () => {
+                  setDropStatusId(column.status.id);
+                }
+              : undefined
+          }
+          onDragLeaveColumn={
+            canManageWorkflow
+              ? () => {
+                  setDropStatusId((current) => (current === column.status.id ? null : current));
+                }
+              : undefined
+          }
+          renderTicket={(ticket) => (
+            <div
+              key={ticket.id}
+              draggable={canManageWorkflow}
+              onTouchStart={() => handleTouchStart(ticket.id)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onDragStart={(event) => {
+                if (!canManageWorkflow) {
+                  return;
+                }
+
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", ticket.id);
+                setDraggingTicketId(ticket.id);
+                setError(null);
+              }}
+              onDragEnd={() => {
+                setDraggingTicketId(null);
+                setDropStatusId(null);
+              }}
+              className={
+                draggingTicketId === ticket.id || touchDraggingTicketId === ticket.id
+                  ? "cursor-grabbing opacity-60"
+                  : canManageWorkflow
+                    ? "cursor-grab"
+                    : ""
+              }
+            >
+              <TicketCard
+                ticket={ticket}
+                statusLabel={column.status.name}
+                canAssume={canManageWorkflow}
+              />
+            </div>
+          )}
+        />
+      )),
+    [
+      boardColumns,
+      canManageWorkflow,
+      draggingTicketId,
+      dropStatusId,
+      handleDrop,
+      handleTouchEnd,
+      handleTouchMove,
+      handleTouchStart,
+      touchDraggingTicketId,
+    ],
+  );
 
   return (
     <div className="space-y-4">
@@ -189,85 +290,7 @@ export function KanbanBoard({ canManageWorkflow, columns }: KanbanBoardProps) {
       ) : null}
 
       <section className="overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-4">
-          {boardColumns.map((column) => (
-            <KanbanColumn
-              key={column.status.id}
-              statusId={column.status.id}
-              title={column.status.name}
-              tone={
-                column.status.name.toLowerCase().includes("atendimento")
-                  ? "amber"
-                  : column.status.name.toLowerCase().includes("aguardando")
-                    ? "violet"
-                    : column.status.name.toLowerCase().includes("resolvido") ||
-                        column.status.name.toLowerCase().includes("fechado")
-                      ? "emerald"
-                      : "blue"
-              }
-              tickets={column.tickets}
-              canAssume={canManageWorkflow}
-              isDropActive={dropStatusId === column.status.id}
-              onDropTicket={
-                canManageWorkflow
-                  ? (event) => {
-                      handleDrop(column.status.id, event);
-                    }
-                  : undefined
-              }
-              onDragOverColumn={
-                canManageWorkflow
-                  ? () => {
-                      setDropStatusId(column.status.id);
-                    }
-                  : undefined
-              }
-              onDragLeaveColumn={
-                canManageWorkflow
-                  ? () => {
-                      setDropStatusId((current) => (current === column.status.id ? null : current));
-                    }
-                  : undefined
-              }
-              renderTicket={(ticket) => (
-                <div
-                  key={ticket.id}
-                  draggable={canManageWorkflow}
-                  onTouchStart={() => handleTouchStart(ticket.id)}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleTouchEnd}
-                  onDragStart={(event) => {
-                    if (!canManageWorkflow) {
-                      return;
-                    }
-
-                    event.dataTransfer.effectAllowed = "move";
-                    event.dataTransfer.setData("text/plain", ticket.id);
-                    setDraggingTicketId(ticket.id);
-                    setError(null);
-                  }}
-                  onDragEnd={() => {
-                    setDraggingTicketId(null);
-                    setDropStatusId(null);
-                  }}
-                  className={
-                    draggingTicketId === ticket.id || touchDraggingTicketId === ticket.id
-                      ? "cursor-grabbing opacity-60"
-                      : canManageWorkflow
-                        ? "cursor-grab"
-                        : ""
-                  }
-                >
-                  <TicketCard
-                    ticket={ticket}
-                    statusLabel={column.status.name}
-                    canAssume={canManageWorkflow}
-                  />
-                </div>
-              )}
-            />
-          ))}
-        </div>
+        <div className="flex min-w-max gap-4">{renderedColumns}</div>
       </section>
     </div>
   );
