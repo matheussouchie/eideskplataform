@@ -20,7 +20,15 @@ function toSlug(input: string) {
 function readRequired(formData: FormData, name: string) {
   const value = formData.get(name);
   if (typeof value !== "string" || !value.trim()) {
-    throw new Error(`Campo obrigatório: ${name}`);
+    throw new Error(`Campo obrigatorio: ${name}`);
+  }
+  return value.trim();
+}
+
+function readOptional(formData: FormData, name: string) {
+  const value = formData.get(name);
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
   }
   return value.trim();
 }
@@ -35,7 +43,7 @@ export async function createWorkspaceAction(formData: FormData) {
   const cookieStore = await cookies();
 
   const name = readRequired(formData, "name");
-  const slug = toSlug(readRequired(formData, "slug"));
+  const slug = toSlug(readOptional(formData, "slug") ?? name);
 
   if (!slug) {
     redirect(withNotice("/dashboard?error=Informe+um+slug+valido"));
@@ -54,10 +62,11 @@ export async function createWorkspaceAction(formData: FormData) {
   const { data: workspace, error: workspaceError } = await supabase
     .from("workspaces")
     .insert({
+      created_by: user.id,
       domain_id: profile.domain_id,
       name,
+      owner_id: user.id,
       slug,
-      created_by: user.id,
     })
     .select("*")
     .single();
@@ -68,9 +77,9 @@ export async function createWorkspaceAction(formData: FormData) {
 
   const { error: membershipError } = await supabase.from("workspace_memberships").insert({
     domain_id: profile.domain_id,
-    workspace_id: workspace.id,
-    user_id: user.id,
     role: "owner",
+    user_id: user.id,
+    workspace_id: workspace.id,
   });
 
   if (membershipError) {
@@ -79,12 +88,13 @@ export async function createWorkspaceAction(formData: FormData) {
 
   cookieStore.set(ACTIVE_WORKSPACE_COOKIE, workspace.id, {
     httpOnly: true,
+    path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    path: "/",
   });
 
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/settings");
   redirect(withNotice("/dashboard?success=Workspace+criado"));
 }
 
@@ -107,9 +117,9 @@ export async function switchWorkspaceAction(formData: FormData) {
 
   cookieStore.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, {
     httpOnly: true,
+    path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    path: "/",
   });
 
   revalidatePath("/dashboard");

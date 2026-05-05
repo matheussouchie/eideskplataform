@@ -51,6 +51,7 @@ export type Database = {
           created_at: string;
           domain_id: string;
           full_name: string | null;
+          global_role: string | null;
           id: string;
           is_active: boolean;
           team_id: string | null;
@@ -62,6 +63,7 @@ export type Database = {
           created_at?: string;
           domain_id: string;
           full_name?: string | null;
+          global_role?: string | null;
           id: string;
           is_active?: boolean;
           team_id?: string | null;
@@ -73,6 +75,7 @@ export type Database = {
           created_at?: string;
           domain_id?: string;
           full_name?: string | null;
+          global_role?: string | null;
           id?: string;
           is_active?: boolean;
           team_id?: string | null;
@@ -187,6 +190,7 @@ export type Database = {
           domain_id: string;
           id: string;
           name: string;
+          owner_id: string;
           slug: string;
           updated_at: string;
         };
@@ -196,6 +200,7 @@ export type Database = {
           domain_id: string;
           id?: string;
           name: string;
+          owner_id: string;
           slug: string;
           updated_at?: string;
         };
@@ -205,6 +210,7 @@ export type Database = {
           domain_id?: string;
           id?: string;
           name?: string;
+          owner_id?: string;
           slug?: string;
           updated_at?: string;
         };
@@ -422,6 +428,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_workspace_member_by_email: {
+        Args: {
+          member_email: string;
+          member_role: Database["public"]["Enums"]["workspace_role"];
+          workspace_uuid: string;
+        };
+        Returns: undefined;
+      };
       archive_workspace_agent: {
         Args: {
           agent_user_id: string;

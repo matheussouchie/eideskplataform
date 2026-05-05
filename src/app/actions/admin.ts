@@ -70,6 +70,36 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+export async function addWorkspaceMemberAction(formData: FormData) {
+  const activeMembership = await requireAdminWorkspaceAccess();
+  const email = normalizeEmail(readRequiredText(formData, "email", { maxLength: 160, minLength: 5 }));
+  const role = readRequiredText(formData, "role") as "admin" | "agent" | "requester";
+
+  if (!["admin", "agent", "requester"].includes(role)) {
+    redirectToSettings("workspace", "Role invalida para o membro", "error");
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { error } = await supabase.rpc("add_workspace_member_by_email", {
+      member_email: email,
+      member_role: role,
+      workspace_uuid: activeMembership.workspace!.id,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    redirectToSettings("workspace", (error as Error).message, "error");
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/team");
+  revalidatePath(SETTINGS_ROUTE);
+  redirectToSettings("workspace", "Membro adicionado ao workspace com sucesso", "success");
+}
+
 export async function createAgentAction(formData: FormData) {
   const activeMembership = await requireAdminWorkspaceAccess();
   const fullName = readRequiredText(formData, "fullName", { maxLength: 120, minLength: 3 });

@@ -80,7 +80,7 @@ export function TicketMessageComposer({
             name="visibility"
             value={visibility}
             onChange={(event) => setVisibility(event.target.value as "public" | "internal")}
-            className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white dark:focus:border-sky-500 dark:focus:bg-[#0B0F1A]"
           >
             <option value="public">Mensagem publica</option>
             <option value="internal">Mensagem interna</option>
@@ -98,7 +98,7 @@ export function TicketMessageComposer({
           value={body}
           onChange={(event) => setBody(event.target.value)}
           placeholder="Escreva uma atualizacao clara para o ticket."
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white dark:placeholder:text-[#6B7280] dark:focus:border-sky-500 dark:focus:bg-[#0B0F1A]"
         />
         <span className="text-xs text-slate-500 dark:text-slate-400">
           Rascunho salvo automaticamente neste navegador.
@@ -111,7 +111,7 @@ export function TicketMessageComposer({
           type="file"
           name="attachments"
           multiple
-          className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white"
         />
         <span className="text-xs text-slate-500 dark:text-slate-400">Cada arquivo pode ter ate 50MB.</span>
       </label>

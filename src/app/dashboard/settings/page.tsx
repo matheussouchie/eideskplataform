@@ -1,4 +1,5 @@
 import {
+  addWorkspaceMemberAction,
   archiveAgentAction,
   createAgentAction,
   createCategoryAction,
@@ -148,6 +149,69 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             <p className="text-sm text-slate-500 dark:text-slate-400">Somente owner ou admin podem editar este workspace.</p>
           )}
         </form>
+
+        {canEdit ? (
+          <div className="mt-6 grid gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">Adicionar membro por email</h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                Inclua usuarios existentes neste workspace com o papel operacional correto.
+              </p>
+            </div>
+
+            <form className="grid gap-3 xl:grid-cols-[1.5fr_0.7fr_auto]" action={addWorkspaceMemberAction}>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Email do usuario</span>
+                <input
+                  name="email"
+                  type="email"
+                  className={workspaceFieldClass}
+                  placeholder="usuario@empresa.com"
+                  required
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Role</span>
+                <select name="role" defaultValue="agent" className={workspaceFieldClass}>
+                  <option value="admin">Admin</option>
+                  <option value="agent">Agent</option>
+                  <option value="requester">Requester</option>
+                </select>
+              </label>
+              <div className="flex items-end">
+                <SubmitButton
+                  className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400 xl:w-auto"
+                  pendingLabel="Adicionando..."
+                >
+                  Adicionar membro
+                </SubmitButton>
+              </div>
+            </form>
+
+            <div className="grid gap-3">
+              {members.map((member) => (
+                <div
+                  key={member.user_id}
+                  className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-[#2A2F3A] dark:bg-[#0B0F1A]"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {member.profile?.full_name ?? "Usuario sem nome"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Entrada em {new Date(member.created_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 dark:bg-slate-900 dark:text-slate-200">
+                      {member.role}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </Card>
 
       {canEdit ? (

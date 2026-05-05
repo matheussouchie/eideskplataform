@@ -15,6 +15,7 @@ export type MembershipRow = {
     domain_id: string;
     id: string;
     name: string;
+    owner_id: string;
     slug: string;
     updated_at: string;
   } | null;

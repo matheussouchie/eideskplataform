@@ -66,6 +66,9 @@ export default async function TicketDetailsPage({
   const publicComments = comments.filter((comment) => !comment.internal);
   const internalComments = comments.filter((comment) => comment.internal);
   const statuses = await getWorkspaceTicketStatuses(activeMembership.workspace!.id);
+  const darkSurfaceClass = "dark:border-[#2A2F3A] dark:bg-[#0B0F1A]";
+  const darkInputClass =
+    "dark:border-[#2A2F3A] dark:bg-[#0B0F1A] dark:text-white dark:placeholder:text-[#6B7280] dark:focus:border-sky-500 dark:focus:bg-[#0B0F1A]";
 
   return (
     <section className="space-y-6">
@@ -114,12 +117,12 @@ export default async function TicketDetailsPage({
             {!ticket.assigned_to ? (
               <form
                 action={assumeTicketAction}
-                className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
+                className={`rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ${darkSurfaceClass}`}
               >
                 <input type="hidden" name="ticketId" value={ticket.id} />
                 <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
                 <SubmitButton
-                className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                   pendingLabel="Assumindo..."
                 >
                   Assumir ticket
@@ -129,16 +132,16 @@ export default async function TicketDetailsPage({
 
             <form
               action={updateTicketStatusAction}
-              className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
+              className={`flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ${darkSurfaceClass}`}
             >
               <input type="hidden" name="ticketId" value={ticket.id} />
               <input type="hidden" name="redirectTo" value={`/dashboard/tickets/${ticket.id}`} />
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Atualizar status</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-100">Atualizar status</span>
                 <select
                   name="statusId"
                   defaultValue={ticket.status_id}
-                  className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                  className={`h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none focus:border-sky-400 focus:bg-white ${darkInputClass}`}
                 >
                   {statuses.map((status) => (
                     <option key={status.id} value={status.id}>
@@ -159,70 +162,70 @@ export default async function TicketDetailsPage({
       </div>
 
       {query.error ? (
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
-            {query.error}
-          </p>
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
+          {query.error}
+        </p>
       ) : null}
       {query.success ? (
-          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-            {query.success}
-          </p>
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+          {query.success}
+        </p>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.45fr]">
         <Card className="p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Contexto</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Contexto</h2>
           <dl className="mt-4 space-y-4 text-sm">
             <div>
-              <dt className="text-slate-500">Cliente</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Cliente</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.requester?.full_name ?? "Cliente nao encontrado"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Responsavel</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Responsavel</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.assignee?.full_name ?? "Sem responsavel"}
               </dd>
               {ticket.assignee ? (
-                <dd className="mt-1 text-xs text-slate-500">
+                <dd className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {ticket.assignee.is_active ? "Agente ativo" : "Agente inativo"}
                 </dd>
               ) : null}
             </div>
             <div>
-              <dt className="text-slate-500">Departamento</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Departamento</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.department?.name ?? "Nao definido"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Produto</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Produto</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.product?.name ?? "Nao definido"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Categoria</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Categoria</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.category?.name ?? "Nao definida"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Time</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Time</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {ticket.team?.name ?? "Nao definido"}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Criado em</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Criado em</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {new Date(ticket.created_at).toLocaleString("pt-BR")}
               </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Ultima atualizacao</dt>
-              <dd className="mt-1 font-semibold text-slate-900">
+              <dt className="text-slate-500 dark:text-slate-400">Ultima atualizacao</dt>
+              <dd className="mt-1 font-semibold text-slate-900 dark:text-white">
                 {new Date(ticket.updated_at).toLocaleString("pt-BR")}
               </dd>
             </div>
@@ -232,8 +235,8 @@ export default async function TicketDetailsPage({
         <div className="space-y-5">
           <Card className="p-5">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Nova mensagem</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Nova mensagem</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Envie atualizacoes publicas para o cliente ou notas internas para o time.
               </p>
             </div>
@@ -249,10 +252,10 @@ export default async function TicketDetailsPage({
           <Card className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">Historico publico</h2>
-                <p className="mt-1 text-sm text-slate-500">Mensagens visiveis para atendimento ao cliente.</p>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Historico publico</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Mensagens visiveis para atendimento ao cliente.</p>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-900 dark:text-slate-300">
                 {publicComments.length} mensagens
               </span>
             </div>
@@ -260,19 +263,19 @@ export default async function TicketDetailsPage({
             <div className="mt-5 space-y-4">
               {publicComments.length ? (
                 publicComments.map((comment) => (
-                  <article key={comment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <article key={comment.id} className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 ${darkSurfaceClass}`}>
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                           {comment.author?.full_name ?? "Usuario"}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {new Date(comment.created_at).toLocaleString("pt-BR")}
                         </p>
                       </div>
                       <Badge variant="neutral">Publico</Badge>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
                       {comment.body}
                     </p>
                     {comment.attachments.length ? (
@@ -283,7 +286,7 @@ export default async function TicketDetailsPage({
                             href={attachment.signed_url ?? "#"}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700"
+                            className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700 dark:bg-slate-950 dark:text-slate-100 dark:ring-[#2A2F3A] dark:hover:text-sky-300"
                           >
                             {attachment.file_name} · {formatFileSize(attachment.file_size)}
                           </a>
@@ -293,7 +296,7 @@ export default async function TicketDetailsPage({
                   </article>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400 dark:border-[#2A2F3A] dark:text-slate-500">
                   Ainda nao ha mensagens publicas neste ticket.
                 </div>
               )}
@@ -304,10 +307,10 @@ export default async function TicketDetailsPage({
             <Card className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">Historico interno</h2>
-                  <p className="mt-1 text-sm text-slate-500">Notas privadas para operacao e acompanhamento do time.</p>
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Historico interno</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Notas privadas para operacao e acompanhamento do time.</p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-900 dark:text-slate-300">
                   {internalComments.length} mensagens
                 </span>
               </div>
@@ -315,19 +318,19 @@ export default async function TicketDetailsPage({
               <div className="mt-5 space-y-4">
                 {internalComments.length ? (
                   internalComments.map((comment) => (
-                    <article key={comment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <article key={comment.id} className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 ${darkSurfaceClass}`}>
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
                             {comment.author?.full_name ?? "Usuario"}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             {new Date(comment.created_at).toLocaleString("pt-BR")}
                           </p>
                         </div>
                         <Badge variant="status-progress">Interno</Badge>
                       </div>
-                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
                         {comment.body}
                       </p>
                       {comment.attachments.length ? (
@@ -338,7 +341,7 @@ export default async function TicketDetailsPage({
                               href={attachment.signed_url ?? "#"}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700"
+                              className="inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:text-sky-700 dark:bg-slate-950 dark:text-slate-100 dark:ring-[#2A2F3A] dark:hover:text-sky-300"
                             >
                               {attachment.file_name} · {formatFileSize(attachment.file_size)}
                             </a>
@@ -348,7 +351,7 @@ export default async function TicketDetailsPage({
                     </article>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400">
+                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-400 dark:border-[#2A2F3A] dark:text-slate-500">
                     Ainda nao ha mensagens internas neste ticket.
                   </div>
                 )}

@@ -87,15 +87,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               required
             />
           </label>
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Slug</span>
-            <input
-              className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-sky-400 focus:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-              name="slug"
-              placeholder="eidesk-operacoes"
-              required
-            />
-          </label>
           <SubmitButton
             className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
             pendingLabel="Criando workspace..."
